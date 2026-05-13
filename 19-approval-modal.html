@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Approve SEC-1745 · SecOps Workbench</title>
+<meta name="description" content="Approval modal — centered, critical, diff preview required by policy, 3 of 4 approvers signed."/>
+<meta name="secops:screen-id" content="19"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Approve SEC-1745 · SecOps Workbench"/>
+<meta property="og:description" content="Approval modal — centered, critical, diff preview required by policy, 3 of 4 approvers signed."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code,kbd{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes modalIn{from{transform:scale(.96) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  /* HOST - the verdict tab behind the modal */
+  .host-bg{filter:blur(3px) brightness(.92);pointer-events:none;opacity:.5;height:100vh;overflow:hidden}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .pgmock{padding:24px;max-width:1180px;margin:0 auto}
+  .ph{height:36px;background:var(--surface-2);border-radius:6px;width:280px;margin-bottom:8px}
+  .ph-sub{height:14px;background:var(--surface-2);border-radius:4px;width:400px;opacity:.6;margin-bottom:18px}
+  .stage{display:flex;gap:4px;margin-bottom:24px}
+  .stage .sg{flex:1;height:6px;background:var(--surface-2);border-radius:3px}
+  .stage .sg.on{background:var(--green)}
+  .stage .sg.cur{background:var(--yellow)}
+  .pgcards{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+  @media (max-width:1024px){.pgcards{grid-template-columns:1fr}}
+  .pgcard{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px;height:240px}
+
+  /* MODAL BACKDROP */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;padding-top:max(16px,var(--safe-top));padding-bottom:max(16px,var(--safe-bottom));animation:fadeIn .15s ease}
+
+  /* MODAL */
+  .md{
+    width:100%;max-width:580px;max-height:100%;background:var(--bg);
+    border:1px solid var(--line);border-radius:16px;
+    display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(12,10,9,.32);
+    animation:modalIn .25s cubic-bezier(.32,.72,0,1);
+    overflow:hidden;
+  }
+  .md.crit{border-color:var(--red);box-shadow:0 0 0 1px var(--red-soft), 0 24px 60px rgba(12,10,9,.32)}
+
+  /* CRITICAL banner — top of modal when severity is critical */
+  .crit-strip{
+    background:var(--red);color:#fff;
+    padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;
+    font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.06em;
+    flex-shrink:0;
+  }
+  .crit-strip svg{width:13px;height:13px}
+  .crit-strip .pol{margin-left:auto;font-weight:500;opacity:.85;text-transform:none;letter-spacing:0}
+
+  /* HEADER */
+  .mh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .mh .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .mh .crumb code{background:var(--surface-2);padding:1px 5px;border-radius:3px;color:var(--ink-2);font-size:10px;letter-spacing:.02em}
+  .mh h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.015em;line-height:1.3}
+  .mh .ttl-sub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto;padding:0}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HEADLINE — what you're approving */
+  .head{padding:16px 20px;border-bottom:1px solid var(--line)}
+  .h-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+  .h-mark{width:38px;height:38px;border-radius:10px;background:var(--red-soft);color:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .h-mark svg{width:18px;height:18px;stroke-width:2.5}
+  .h-t{flex:1;min-width:0}
+  .h-t h3{margin:0;font-size:15.5px;font-weight:600;letter-spacing:-.01em;line-height:1.35}
+  .h-t .h-meta{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .h-t .h-meta .pill{background:var(--surface-2);padding:2px 7px;border-radius:4px;color:var(--ink-2);font-weight:600}
+  .h-t .h-meta .pill.red{background:var(--red);color:#fff}
+  .h-t .h-meta .dot{width:2px;height:2px;border-radius:50%;background:var(--ink-4)}
+
+  /* SECTION HEAD */
+  .sec{padding:14px 20px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec .info{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;font-weight:500}
+
+  /* CHECKLIST */
+  .chk{margin:0 20px 4px;background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .ck{padding:10px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2);font-size:12.5px;color:var(--ink-2)}
+  .ck:last-child{border:none}
+  .ck .ico{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .ck.ok .ico{background:var(--green-soft);color:var(--green)}
+  .ck.ok .ico svg{width:11px;height:11px;stroke-width:3}
+  .ck.warn .ico{background:var(--yellow-soft);color:var(--yellow)}
+  .ck.warn .ico svg{width:11px;height:11px}
+  .ck .lbl{flex:1;min-width:0}
+  .ck .lbl b{color:var(--ink);font-weight:600}
+  .ck .lbl code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .ck .meta{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* DIFF PREVIEW */
+  .diff{margin:0 20px 4px;border-radius:11px;overflow:hidden;border:1px solid var(--line)}
+  .diff-head{padding:8px 13px;background:var(--surface-2);display:flex;align-items:center;gap:10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;border-bottom:1px solid var(--line)}
+  .diff-head .fp{color:var(--ink-2);text-transform:none;letter-spacing:0;font-weight:500}
+  .diff-head .stats{margin-left:auto;display:inline-flex;gap:8px}
+  .diff-head .stats .add{color:var(--green)}
+  .diff-head .stats .del{color:var(--red)}
+  .code{background:#0c0a09;color:#fafaf9;font-family:'Geist Mono',monospace;font-size:11.5px;line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .code .ln{display:flex}
+  .code .gut{flex-shrink:0;width:32px;text-align:right;padding:0 8px;color:#525252;user-select:none;font-feature-settings:'tnum'}
+  .code .src{flex:1;padding:0 10px;white-space:pre}
+  .code .ln.del{background:rgba(239,68,68,.12)}
+  .code .ln.del .gut{color:#fca5a5}
+  .code .ln.del .src{color:#fca5a5}
+  .code .ln.add{background:rgba(34,197,94,.12)}
+  .code .ln.add .gut{color:#86efac}
+  .code .ln.add .src{color:#86efac}
+  .code .ln.ctx .src{color:#a8a29e}
+
+  /* APPROVER STACK */
+  .vts{margin:0 20px 4px;background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .vt{padding:9px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2);font-size:12px}
+  .vt:last-child{border:none}
+  .av{width:24px;height:24px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;color:#fff;letter-spacing:-.02em}
+  .av.alice{background:linear-gradient(135deg,#14b8a6,#0d9488)}
+  .av.jr{background:linear-gradient(135deg,#ec4899,#be185d)}
+  .av.dev{background:var(--orange)} .av.dev::before{content:'DEV'}
+  .av.rev{background:var(--green)} .av.rev::before{content:'REV'}
+  .vt .nm{flex:1;min-width:0}
+  .vt .nm b{font-weight:600;color:var(--ink)}
+  .vt .nm .r{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-left:5px}
+  .vt .vote{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;display:inline-flex;align-items:center;gap:4px}
+  .vt .vote.ok{background:var(--green-soft);color:var(--green)}
+  .vt .vote.ok svg{width:9px;height:9px;stroke-width:3}
+  .vt .vote.pending{background:var(--yellow-soft);color:var(--yellow)}
+  .vt .vote.pending::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--yellow);animation:pulse 1.8s infinite}
+  .vt .vote.you{background:var(--ink);color:var(--bg)}
+  .vt .tm{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* REASON FIELD */
+  .reason{margin:0 20px 4px}
+  .rl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .rl .opt{font-weight:500;color:var(--ink-4);text-transform:none;letter-spacing:0}
+  .reason textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-family:'Geist',sans-serif;font-size:13px;color:var(--ink);background:var(--surface);resize:vertical;min-height:64px;line-height:1.5}
+  .reason textarea::placeholder{color:var(--ink-4)}
+  .reason textarea:focus{outline:none;border-color:var(--ink-3);box-shadow:0 0 0 3px var(--surface-3)}
+
+  /* MODAL FOOTER — action row */
+  .mf{padding:14px 20px calc(14px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);flex-shrink:0}
+  .mf-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .mf-row .ph-meta{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mf-row .ph-meta svg{width:11px;height:11px;flex-shrink:0}
+  .mf-row .ph-meta b{color:var(--ink-2);font-weight:600}
+  .mf-act{display:flex;gap:8px}
+  .b-sec{flex:1;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px}
+  .b-sec:hover{background:var(--surface-2)}
+  .b-pri{flex:2;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:600;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border:1px solid var(--ink)}
+  .b-pri:hover{opacity:.92}
+  .b-pri.crit{background:var(--red);border-color:var(--red);color:#fff}
+  .b-pri.crit:hover{opacity:.92}
+  .b-pri svg{width:13px;height:13px}
+  .kbd-hint{margin-left:auto;display:inline-flex;gap:3px;font-size:10px;color:rgba(255,255,255,.7);font-family:'Geist Mono',monospace;font-weight:500}
+  .kbd-hint kbd{padding:1px 5px;background:rgba(255,255,255,.12);border-radius:3px;color:#fff;font-size:9.5px}
+</style>
+</head>
+<body>
+
+<!-- HOST PAGE - blurred Verdict tab -->
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn">
+      <button class="tt active">Remediation</button>
+      <button class="tt">Intake</button>
+      <button class="tt">Sprint</button>
+      <button class="tt">AgentBook</button>
+    </nav>
+  </header>
+  <div class="pgmock">
+    <div class="ph"></div>
+    <div class="ph-sub"></div>
+    <div class="stage">
+      <div class="sg on"></div><div class="sg on"></div><div class="sg on"></div><div class="sg on"></div><div class="sg cur"></div><div class="sg"></div><div class="sg"></div>
+    </div>
+    <div class="pgcards">
+      <div class="pgcard"></div>
+      <div class="pgcard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BACKDROP & MODAL -->
+<div class="bg">
+  <div class="md crit" role="dialog" aria-labelledby="md-title" aria-describedby="md-desc">
+
+    <!-- Critical strip -->
+    <div class="crit-strip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Critical severity · production approval
+      <span class="pol">Policy: 2-approver merge required</span>
+    </div>
+
+    <!-- Header -->
+    <div class="mh">
+      <div>
+        <div class="crumb">
+          Approve · <code>SEC-1745</code> · <code>MR !8442</code>
+        </div>
+        <h2 id="md-title">You're the final approver</h2>
+        <div class="ttl-sub" id="md-desc">3 of 4 approvers have signed off · merging will deploy to <b>prod</b> within 15 min</div>
+      </div>
+      <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <div class="body">
+
+      <!-- Headline: what you're approving -->
+      <div class="head">
+        <div class="h-row">
+          <div class="h-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          </div>
+          <div class="h-t">
+            <h3>SQL injection in <code style="background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:12px;color:var(--ink-2)">OrderRepository.findByCustomer</code></h3>
+            <div class="h-meta">
+              <span class="pill red">Critical</span>
+              <span class="pill">CWE-89</span>
+              <span class="pill">order-service</span>
+              <span class="dot"></span>
+              <span>playbook <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px">spring-sql-injection@2.3</code></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pre-approval checklist -->
+      <div class="sec">Pre-approval checks<span class="ln"></span><span class="info">4 of 4 passing</span></div>
+      <div class="chk">
+        <div class="ck ok">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="lbl"><b>Build #4827 passing</b> · 47 of 47 tests + 3 new regression tests</span>
+          <span class="meta">2h ago</span>
+        </div>
+        <div class="ck ok">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="lbl"><b>Sandbox dry-run clean</b> · <code>java-17-v3</code> · 7m 41s</span>
+          <span class="meta">11m ago</span>
+        </div>
+        <div class="ck ok">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="lbl"><b>Commit GPG-signed</b> · <code>9a7f3d2</code> · key matches DEV agent</span>
+          <span class="meta">2h ago</span>
+        </div>
+        <div class="ck ok">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="lbl"><b>Scope within policy</b> · 1 file, +18 / −4 lines · under blast-radius cap</span>
+          <span class="meta">policy v3.2</span>
+        </div>
+      </div>
+
+      <!-- Diff preview (required for critical by policy) -->
+      <div class="sec">Code change<span class="ln"></span><span class="info">required for critical · policy</span></div>
+      <div class="diff">
+        <div class="diff-head">
+          <span class="fp"><code style="background:var(--surface);padding:1px 5px;border-radius:3px;color:var(--ink-2);font-size:10px">order-service/src/main/java/com/co/order/OrderRepository.java</code></span>
+          <span class="stats">
+            <span class="add">+18</span>
+            <span class="del">−4</span>
+          </span>
+        </div>
+        <div class="code">
+          <div class="ln ctx"><span class="gut">42</span><span class="src">  public List&lt;Order&gt; findByCustomer(String id) {</span></div>
+          <div class="ln del"><span class="gut">43</span><span class="src">    String q = "SELECT * FROM orders WHERE customer='" + id + "'";</span></div>
+          <div class="ln del"><span class="gut">44</span><span class="src">    return jdbc.query(q, mapper);</span></div>
+          <div class="ln add"><span class="gut">43</span><span class="src">    String q = "SELECT * FROM orders WHERE customer = ?";</span></div>
+          <div class="ln add"><span class="gut">44</span><span class="src">    return jdbc.query(q, mapper, id);</span></div>
+          <div class="ln ctx"><span class="gut">45</span><span class="src">  }</span></div>
+        </div>
+      </div>
+
+      <!-- Approver vote stack -->
+      <div class="sec">Approvers<span class="ln"></span><span class="info">3 of 4 signed</span></div>
+      <div class="vts">
+        <div class="vt">
+          <div class="av dev"></div>
+          <div class="nm"><b>Developer Agent</b><span class="r">opened MR</span></div>
+          <span class="vote ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> signed</span>
+          <span class="tm">2h ago</span>
+        </div>
+        <div class="vt">
+          <div class="av rev"></div>
+          <div class="nm"><b>Reviewer Agent</b><span class="r">code review</span></div>
+          <span class="vote ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> approved</span>
+          <span class="tm">11m ago</span>
+        </div>
+        <div class="vt">
+          <div class="av jr">JR</div>
+          <div class="nm"><b>J. Reviewer</b><span class="r">on-call sec eng</span></div>
+          <span class="vote ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> approved</span>
+          <span class="tm">at 10:31</span>
+        </div>
+        <div class="vt">
+          <div class="av alice">AB</div>
+          <div class="nm"><b>Alice Brown</b><span class="r">security lead · you</span></div>
+          <span class="vote you">Your turn</span>
+          <span class="tm">now</span>
+        </div>
+      </div>
+
+      <!-- Reason field -->
+      <div class="sec">Reason<span class="ln"></span><span class="info">optional · logged to audit trail</span></div>
+      <div class="reason">
+        <textarea placeholder="Why you're approving (or notes for the rollback team if this is later reverted)…"></textarea>
+      </div>
+
+      <div style="height:8px"></div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="mf">
+      <div class="mf-row">
+        <span class="ph-meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <b>secops-policy@v3.2</b> · auto-rollback armed
+        </span>
+      </div>
+      <div class="mf-act">
+        <button class="b-sec">Request changes</button>
+        <button class="b-pri crit">
+          Approve &amp; merge
+          <span class="kbd-hint"><kbd>⌘</kbd><kbd>↵</kbd></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+</script>
+
+</body>
+</html>

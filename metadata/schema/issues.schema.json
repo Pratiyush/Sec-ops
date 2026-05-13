@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secops.local/schema/issues.schema.json",
+  "title": "Issues manifest",
+  "type": "object",
+  "required": ["version", "issues"],
+  "properties": {
+    "version": { "type": "string" },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "severity", "cwe", "service", "status"],
+        "properties": {
+          "id":         { "type": "string", "pattern": "^SEC-[0-9]+$" },
+          "fortifyId":  { "type": "string" },
+          "title":      { "type": "string" },
+          "severity":   { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+          "cwe":        { "type": "string", "pattern": "^CWE-[0-9]+$" },
+          "service":    { "type": "string" },
+          "file":       { "type": "string" },
+          "line":       { "type": "integer", "minimum": 1 },
+          "playbook":   { "type": ["string", "null"] },
+          "status":     { "type": "string", "enum": ["intake", "needs-review", "too-complex", "in-progress", "awaiting-approval", "merged", "rolled-back"] },
+          "stage":      { "type": "string" },
+          "sprint":     { "type": "string" },
+          "policy":     { "type": "string" },
+          "approvers":  { "type": "object" },
+          "evidence":   { "type": "object" },
+          "regression": { "type": "object" },
+          "tokenSpend": { "type": "object" }
+        }
+      }
+    }
+  }
+}

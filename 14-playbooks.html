@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Playbooks · SecOps Workbench</title>
+<meta name="description" content="Playbooks & Skills — 6 playbooks. spring-sql-injection@2.3 (T1, 12 uses), spring-csrf ready for T1 promotion."/>
+<meta name="secops:screen-id" content="14"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Playbooks · SecOps Workbench"/>
+<meta property="og:description" content="Playbooks & Skills — 6 playbooks. spring-sql-injection@2.3 (T1, 12 uses), spring-csrf ready for T1 promotion."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --teal:#0d9488; --teal-soft:#ccfbf1;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+    --teal:#5eead4; --teal-soft:rgba(20,184,166,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:flex-start;gap:14px}
+  .hero-orb{width:44px;height:44px;border-radius:12px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .hero-orb svg{width:22px;height:22px;stroke-width:2.5}
+  .hero-t{flex:1;min-width:0}
+  .hero-t .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px}
+  .hero-t h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .hero-t .s{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+  .hero-t .s b{color:var(--ink-2);font-weight:600}
+  .hero-t .s code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:17px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .v.ok{color:var(--green)}
+  .st .v.warn{color:var(--yellow)}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* FILTERS */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchip .ct{font-family:'Geist Mono',monospace;font-size:10px;opacity:.7}
+  .fchip.active .ct{opacity:.85}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+
+  /* PLAYBOOK CARD */
+  .pb{margin:0 20px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:border-color .15s}
+  .pb:hover{border-color:var(--ink-4)}
+  .pb.draft{opacity:.85;border-style:dashed}
+  .pb.promote{border-color:var(--green);box-shadow:0 0 0 1px var(--green-soft)}
+
+  .ph{padding:13px 14px}
+  .prow{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .pname{font-size:14px;font-weight:600;letter-spacing:-.005em;color:var(--ink);font-family:'Geist Mono',monospace}
+  .pname .at{color:var(--ink-3);font-weight:500}
+  .ptier{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace}
+  .ptier.t1{background:var(--green-soft);color:var(--green)}
+  .ptier.t2{background:var(--blue-soft);color:var(--blue)}
+  .ptier.t3{background:var(--yellow-soft);color:var(--yellow)}
+  .ptier.draft{background:var(--surface-2);color:var(--ink-3)}
+  .ptier.ready{background:var(--green);color:#fff;animation:pulse 2.5s infinite}
+
+  .plang{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+
+  .pdesc{font-size:12.5px;color:var(--ink-2);line-height:1.5;margin-top:4px}
+  .pdesc code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-family:'Geist Mono',monospace}
+
+  /* tri-metric like #10 */
+  .pm{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line-2)}
+  .pmi{padding:9px 12px;background:var(--surface)}
+  .pmi .pml{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:3px}
+  .pmi .pmv{font-size:13px;font-weight:600;font-family:'Geist Mono',monospace;font-feature-settings:'tnum'}
+  .pmi .pmv.ok{color:var(--green)} .pmi .pmv.warn{color:var(--yellow)}
+  .pmi .pmv small{font-size:10px;font-weight:500;color:var(--ink-3);margin-left:3px}
+
+  /* Action row */
+  .pact{padding:10px 14px;background:var(--surface-2);display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--line-2);align-items:center}
+  .pact .mt{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-right:auto}
+  .pact .mt b{color:var(--ink-2);font-weight:600}
+  .b{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:5px;min-height:28px}
+  .b:hover{background:var(--surface-3);color:var(--ink)}
+  .b.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .b.p:hover{opacity:.9}
+  .b svg{width:11px;height:11px}
+
+  /* Promote banner inside promote card */
+  .pbanner{padding:9px 14px;background:var(--green-soft);border-top:1px solid var(--line-2);display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+  .pbanner svg{width:14px;height:14px;color:var(--green);flex-shrink:0}
+  .pbanner b{color:var(--ink);font-weight:600}
+
+  /* Expand */
+  .exp{padding:0 14px;background:var(--surface);border-top:1px solid var(--line-2);max-height:1500px;overflow:hidden;transition:max-height .25s}
+  .exp.hidden{max-height:0;border-top:none}
+  .ei{padding:13px 0 14px}
+  .esec{margin-bottom:14px}
+  .esec:last-child{margin-bottom:0}
+  .et{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+
+  /* CWE tags */
+  .cwe{display:flex;gap:5px;flex-wrap:wrap}
+  .cwe span{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-2);letter-spacing:.02em}
+
+  /* Code preview */
+  .code-prev{background:#0c0a09;color:#fafaf9;border-radius:8px;padding:10px 12px;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.7;overflow-x:auto}
+  .code-prev .del{color:#fca5a5;background:rgba(239,68,68,.15);display:block;padding:0 4px;margin:0 -4px}
+  .code-prev .add{color:#86efac;background:rgba(34,197,94,.15);display:block;padding:0 4px;margin:0 -4px}
+  .code-prev .ctx{color:#a8a29e}
+  .code-prev .cm{color:#fbbf24}
+
+  /* Use list */
+  .uses{display:flex;flex-direction:column}
+  .ur{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .ur:last-child{border:none}
+  .ur .dt{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+  .ur .dt.warn{background:var(--yellow)}
+  .ur .tx{flex:1;color:var(--ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ur .tx code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-family:'Geist Mono',monospace}
+  .ur .tm{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* Add row */
+  .add{margin:16px 20px 24px;padding:16px;border:1.5px dashed var(--line);border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-3);width:calc(100% - 40px);background:transparent}
+  .add:hover{border-color:var(--ink-3);color:var(--ink-2);background:var(--surface-2)}
+  .add .pc{width:30px;height:30px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .add .pc svg{width:14px;height:14px}
+  .add .ttx{flex:1;text-align:left}
+  .add .ttx b{font-weight:600;color:var(--ink-2);display:block}
+  .add .ttx small{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Tools · Knowledge
+      </div>
+      <h2>Playbooks &amp; Skills</h2>
+      <div class="hsub">Git-versioned <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:11px">SKILL.md</code> files · the patterns the Developer Agent uses to fix vulnerabilities</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/></svg>
+      </div>
+      <div class="hero-t">
+        <div class="l">Library · <code>git.company.com/secops/playbooks</code></div>
+        <h3>6 playbooks · 26 uses this sprint</h3>
+        <div class="s"><b>97% success</b> across all playbooks · 1 ready for <b>T1 promotion</b> · 1 in draft. Last library update <b>2 days ago</b>.</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="st"><div class="v">6</div><div class="l">Playbooks</div></div>
+      <div class="st"><div class="v ok">97%</div><div class="l">Avg success</div></div>
+      <div class="st"><div class="v">26</div><div class="l">Uses sprint</div></div>
+      <div class="st"><div class="v warn">1</div><div class="l">Draft</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <button class="fchip active">All <span class="ct">6</span></button>
+      <button class="fchip">Spring <span class="ct">4</span></button>
+      <button class="fchip">Generic <span class="ct">2</span></button>
+      <button class="fchip">T1 ready <span class="ct">2</span></button>
+      <button class="fchip">Draft <span class="ct">1</span></button>
+    </div>
+
+    <!-- ============ ACTIVE PLAYBOOKS ============ -->
+    <div class="sec">Active · 5 playbooks<span class="ln"></span></div>
+
+    <!-- 1. spring-sql-injection — T1, most used -->
+    <article class="pb">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">spring-sql-injection<span class="at">@2.3</span></span>
+          <span class="ptier t1">T1</span>
+          <span class="plang">Spring</span>
+        </div>
+        <div class="pdesc">Replaces unsafe <code>String</code> concatenation in <code>JdbcTemplate.query()</code> with parameterized queries. Covers <b>CWE-89</b>.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">uses</div><div class="pmv">12</div></div>
+        <div class="pmi"><div class="pml">success</div><div class="pmv ok">100%</div></div>
+        <div class="pmi"><div class="pml">avg fix time</div><div class="pmv">4<small>m</small></div></div>
+      </div>
+      <div class="pact">
+        <span class="mt">owner: <b>@alice</b> · updated <b>2w ago</b></span>
+        <button class="b p" onclick="tog('e1')">View pattern</button>
+        <button class="b">History</button>
+      </div>
+      <div class="exp hidden" id="e1">
+        <div class="ei">
+
+          <div class="esec">
+            <div class="et"><span>CWE coverage</span></div>
+            <div class="cwe"><span>CWE-89</span><span>CWE-564</span></div>
+          </div>
+
+          <div class="esec">
+            <div class="et"><span>Fix pattern · simplified</span><span style="font-weight:500;color:var(--ink-4)">OrderRepository.java</span></div>
+            <div class="code-prev">
+<span class="cm">// before</span>
+<span class="del">String q = "SELECT * FROM orders WHERE customer='" + id + "'";</span>
+<span class="del">return jdbc.query(q, mapper);</span>
+<span class="cm">// after</span>
+<span class="add">String q = "SELECT * FROM orders WHERE customer = ?";</span>
+<span class="add">return jdbc.query(q, mapper, id);</span>
+            </div>
+          </div>
+
+          <div class="esec">
+            <div class="et"><span>Recent uses · 3 of 12</span></div>
+            <div class="uses">
+              <div class="ur"><span class="dt"></span><span class="tx"><code>SEC-1745</code> · order-service · awaiting approval</span><span class="tm">today</span></div>
+              <div class="ur"><span class="dt"></span><span class="tx"><code>SEC-1729</code> · order-service · auto-merged</span><span class="tm">2d ago</span></div>
+              <div class="ur"><span class="dt"></span><span class="tx"><code>SEC-1718</code> · billing · auto-merged</span><span class="tm">5d ago</span></div>
+            </div>
+          </div>
+
+          <div class="esec">
+            <div class="et"><span>Regression tests included</span></div>
+            <div class="cwe"><span>SQL_INJECT_HAPPY</span><span>SQL_INJECT_BOUNDARY</span><span>SQL_INJECT_UNICODE</span></div>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <!-- 2. spring-csrf — promotion candidate -->
+    <article class="pb promote">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">spring-csrf<span class="at">@1.2</span></span>
+          <span class="ptier t2">T2</span>
+          <span class="plang">Spring</span>
+          <span class="ptier ready" style="margin-left:auto">Ready T1</span>
+        </div>
+        <div class="pdesc">Adds missing <code>@EnableWebSecurity</code> CSRF token configuration. Covers <b>CWE-352</b>. Currently in use on <code>SEC-1747</code>.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">uses</div><div class="pmv">5</div></div>
+        <div class="pmi"><div class="pml">success</div><div class="pmv ok">100%</div></div>
+        <div class="pmi"><div class="pml">avg fix time</div><div class="pmv">6<small>m</small></div></div>
+      </div>
+      <div class="pbanner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span><b>Ready for T1 promotion</b> — 5 uses, 100% success. Approved at last retro. Awaiting <code>@j.reviewer</code> to apply policy change.</span>
+      </div>
+      <div class="pact">
+        <span class="mt">owner: <b>@j.reviewer</b> · updated <b>9d ago</b></span>
+        <button class="b p">Promote to T1</button>
+        <button class="b">View pattern</button>
+      </div>
+    </article>
+
+    <!-- 3. sha256-migration -->
+    <article class="pb">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">sha256-migration<span class="at">@1.4</span></span>
+          <span class="ptier t1">T1</span>
+          <span class="plang">Generic</span>
+        </div>
+        <div class="pdesc">Replaces <code>MessageDigest.getInstance("SHA-1")</code> and <code>MD5</code> with SHA-256. Migrates stored hashes via background job. Covers <b>CWE-327</b>.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">uses</div><div class="pmv">3</div></div>
+        <div class="pmi"><div class="pml">success</div><div class="pmv ok">100%</div></div>
+        <div class="pmi"><div class="pml">avg fix time</div><div class="pmv">12<small>m</small></div></div>
+      </div>
+      <div class="pact">
+        <span class="mt">owner: <b>@j.reviewer</b> · updated <b>3w ago</b></span>
+        <button class="b p">View pattern</button>
+        <button class="b">History</button>
+      </div>
+    </article>
+
+    <!-- 4. path-traversal -->
+    <article class="pb">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">path-traversal<span class="at">@1.0</span></span>
+          <span class="ptier t2">T2</span>
+          <span class="plang">Generic</span>
+        </div>
+        <div class="pdesc">Wraps user-supplied paths with <code>Path.normalize()</code> and validates against allowed base directory. Covers <b>CWE-22</b>, <b>CWE-23</b>.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">uses</div><div class="pmv">2</div></div>
+        <div class="pmi"><div class="pml">success</div><div class="pmv ok">100%</div></div>
+        <div class="pmi"><div class="pml">avg fix time</div><div class="pmv">9<small>m</small></div></div>
+      </div>
+      <div class="pact">
+        <span class="mt">owner: <b>@alice</b> · updated <b>3w ago</b></span>
+        <button class="b p">View pattern</button>
+        <button class="b">History</button>
+      </div>
+    </article>
+
+    <!-- 5. hardcoded-secret -->
+    <article class="pb">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">hardcoded-secret<span class="at">@1.1</span></span>
+          <span class="ptier t2">T2</span>
+          <span class="plang">Generic</span>
+        </div>
+        <div class="pdesc">Extracts hardcoded API keys / JDBC passwords to <code>${env.SECRET}</code> placeholders, opens a Vault PR alongside. Covers <b>CWE-798</b>.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">uses</div><div class="pmv">4</div></div>
+        <div class="pmi"><div class="pml">success</div><div class="pmv warn">75%</div></div>
+        <div class="pmi"><div class="pml">avg fix time</div><div class="pmv">15<small>m</small></div></div>
+      </div>
+      <div class="pact">
+        <span class="mt">1 failure: <b>secret rotation conflict</b></span>
+        <button class="b p">View pattern</button>
+        <button class="b">History</button>
+      </div>
+    </article>
+
+    <!-- ============ DRAFT ============ -->
+    <div class="sec">Draft · 1 playbook<span class="ln"></span></div>
+
+    <article class="pb draft">
+      <div class="ph">
+        <div class="prow">
+          <span class="pname">spring-jsp-xss<span class="at">@0.4-draft</span></span>
+          <span class="ptier draft">Draft</span>
+          <span class="plang">Spring</span>
+        </div>
+        <div class="pdesc">Escapes JSP output with <code>&lt;c:out&gt;</code> and <code>fn:escapeXml</code>. Targets <b>CWE-79</b>. <b>3 findings blocked</b> on this playbook landing.</div>
+      </div>
+      <div class="pm">
+        <div class="pmi"><div class="pml">progress</div><div class="pmv warn">40%</div></div>
+        <div class="pmi"><div class="pml">blocked by</div><div class="pmv">3 tix</div></div>
+        <div class="pmi"><div class="pml">target</div><div class="pmv">Wed</div></div>
+      </div>
+      <div class="pact">
+        <span class="mt">owner: <b>@alice</b> · from Sprint 7 Planning</span>
+        <button class="b p">Open draft</button>
+        <button class="b">Comment</button>
+      </div>
+    </article>
+
+    <!-- ADD -->
+    <button class="add">
+      <div class="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="ttx">
+        <b>Author a new playbook</b>
+        <small>Opens a PR against <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px">git.company.com/secops/playbooks</code></small>
+      </div>
+    </button>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      library: <b style="color:var(--ink-2)">playbooks@main</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open repo
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  function tog(id){
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden');
+  }
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>

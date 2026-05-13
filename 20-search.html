@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Search · SecOps Workbench</title>
+<meta name="description" content="Search overlay — Spotlight, Cmd+K, 9 results for '1745' across tickets, playbooks, ceremonies, people, commands."/>
+<meta name="secops:screen-id" content="20"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Search · SecOps Workbench"/>
+<meta property="og:description" content="Search overlay — Spotlight, Cmd+K, 9 results for '1745' across tickets, playbooks, ceremonies, people, commands."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --teal:#0d9488; --teal-soft:#ccfbf1;
+    --safe-top:env(safe-area-inset-top,0);
+    --safe-bottom:env(safe-area-inset-bottom,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+    --teal:#5eead4; --teal-soft:rgba(20,184,166,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  input{font-family:inherit}
+  code,kbd{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes modalIn{from{transform:scale(.97) translateY(-6px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  /* HOST - sprint board behind overlay */
+  .host-bg{filter:blur(3px) brightness(.92);pointer-events:none;opacity:.5;height:100vh;overflow:hidden}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .pgmock{padding:24px;max-width:1180px;margin:0 auto}
+  .ph{height:36px;background:var(--surface-2);border-radius:6px;width:280px;margin-bottom:8px}
+  .ph-sub{height:14px;background:var(--surface-2);border-radius:4px;width:400px;opacity:.6;margin-bottom:18px}
+  .pgcards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media (max-width:1024px){.pgcards{grid-template-columns:repeat(2,1fr)}}
+  .pgcard{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* BACKDROP — top-anchored not center */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 16px;padding-top:max(96px, calc(var(--safe-top) + 80px));animation:fadeIn .12s ease}
+  @media (max-width:640px){.bg{padding-top:max(48px, calc(var(--safe-top) + 32px))}}
+
+  /* SPOTLIGHT MODAL */
+  .sp{
+    width:100%;max-width:640px;background:var(--bg);
+    border:1px solid var(--line);border-radius:14px;
+    display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(12,10,9,.28);
+    animation:modalIn .18s cubic-bezier(.32,.72,0,1);
+    overflow:hidden;max-height:calc(100vh - 132px);
+  }
+
+  /* INPUT ROW */
+  .ir{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0}
+  .ir .si{width:18px;height:18px;color:var(--ink-3);flex-shrink:0}
+  .ir input{flex:1;border:none;background:none;font-size:16px;color:var(--ink);outline:none;letter-spacing:-.005em;font-weight:500;min-width:0}
+  .ir input::placeholder{color:var(--ink-4)}
+  .ir .esc{padding:3px 8px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);font-size:10px;font-weight:600;color:var(--ink-3);font-family:'Geist Mono',monospace;flex-shrink:0}
+  .ir .clr{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .ir .clr:hover{background:var(--surface-2);color:var(--ink)}
+  .ir .clr svg{width:12px;height:12px}
+
+  /* CONTEXT STRIP — shows what query matched */
+  .ctx{padding:8px 18px;background:var(--surface-2);border-bottom:1px solid var(--line);font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ctx b{color:var(--ink-2);font-weight:600}
+  .ctx .scope{display:inline-flex;gap:4px;align-items:center;padding:1px 7px;border-radius:4px;background:var(--surface);color:var(--ink-2);font-weight:600}
+
+  /* RESULTS BODY */
+  .rb{flex:1;overflow-y:auto}
+  .rb::-webkit-scrollbar{width:6px}
+  .rb::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* GROUP */
+  .grp{padding:6px 0}
+  .grp:not(:first-child){border-top:1px solid var(--line-2)}
+  .gh{padding:8px 18px 4px;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);font-weight:700;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .gh .ct{margin-left:auto;color:var(--ink-4);font-weight:600}
+
+  /* RESULT ROW */
+  .row{padding:8px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;border-left:2px solid transparent;transition:background .1s}
+  .row:hover{background:var(--surface)}
+  .row.sel{background:var(--surface);border-left-color:var(--ink)}
+  .row .ic{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:-.02em}
+  .row .ic svg{width:15px;height:15px}
+  .row .ic.tk{background:var(--red-soft);color:var(--red)}
+  .row .ic.tk.h{background:var(--orange-soft);color:var(--orange)}
+  .row .ic.tk.m{background:var(--yellow-soft);color:var(--yellow)}
+  .row .ic.pb{background:var(--teal-soft);color:var(--teal)}
+  .row .ic.av-alice{background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff}
+  .row .ic.av-alice::before{content:'AB'}
+  .row .ic.av-jr{background:linear-gradient(135deg,#ec4899,#be185d);color:#fff}
+  .row .ic.av-jr::before{content:'JR'}
+  .row .ic.set{background:var(--surface-2);color:var(--ink-2)}
+  .row .ic.cmd{background:var(--ink);color:var(--bg)}
+  .row .ic.cmd svg{width:14px;height:14px}
+
+  .row .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .row .ti{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .ti mark{background:var(--yellow-soft);color:var(--ink);padding:0 2px;border-radius:2px;font-weight:700}
+  .row .ti code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-weight:500}
+  .row .sb{font-size:11.5px;color:var(--ink-3);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Geist Mono',monospace}
+  .row .sb b{color:var(--ink-2);font-weight:600}
+  .row .meta{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0;display:flex;align-items:center;gap:8px}
+  .row .meta .badge{padding:2px 6px;border-radius:4px;background:var(--surface-2);color:var(--ink-3);font-weight:600;letter-spacing:.02em}
+  .row .meta .badge.crit{background:var(--red);color:#fff}
+  .row .meta .badge.med{background:var(--yellow-soft);color:var(--yellow)}
+  .row .ent{width:16px;height:16px;color:var(--ink-3);opacity:0;flex-shrink:0}
+  .row.sel .ent{opacity:1}
+  .row .ent svg{width:14px;height:14px}
+
+  /* FOOTER */
+  .ft{padding:9px 16px calc(9px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;gap:14px;flex-shrink:0;font-size:10.5px;color:var(--ink-3);font-family:'Geist Mono',monospace;flex-wrap:wrap}
+  .ft .kg{display:inline-flex;align-items:center;gap:5px}
+  .ft .kg kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;font-size:10px;font-weight:600;color:var(--ink-2)}
+  .ft .kg svg{width:11px;height:11px}
+  .ft .sp-spacer{flex:1}
+  .ft .scope-info{display:inline-flex;align-items:center;gap:5px;color:var(--ink-3)}
+  .ft .scope-info b{color:var(--ink-2);font-weight:600}
+
+  /* Floating ⌘K hint when no demo backdrop visible — hide */
+</style>
+</head>
+<body>
+
+<!-- HOST — sprint board behind -->
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn">
+      <button class="tt">Remediation</button>
+      <button class="tt">Intake</button>
+      <button class="tt active">Sprint</button>
+      <button class="tt">AgentBook</button>
+    </nav>
+  </header>
+  <div class="pgmock">
+    <div class="ph"></div>
+    <div class="ph-sub"></div>
+    <div class="pgcards">
+      <div class="pgcard"></div><div class="pgcard"></div><div class="pgcard"></div><div class="pgcard"></div><div class="pgcard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BACKDROP & SPOTLIGHT -->
+<div class="bg">
+  <div class="sp" role="dialog" aria-label="Search">
+
+    <!-- INPUT -->
+    <div class="ir">
+      <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" value="1745" placeholder="Search tickets, people, playbooks, settings…" autocomplete="off">
+      <button class="clr" aria-label="Clear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <kbd class="esc">Esc</kbd>
+    </div>
+
+    <!-- CTX -->
+    <div class="ctx">
+      <span>9 results for</span><span class="scope">"1745"</span><span>·</span><span><b>tickets</b>, playbooks, ceremonies, people, settings</span>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="rb">
+
+      <!-- TICKETS -->
+      <div class="grp">
+        <div class="gh">Tickets <span class="ct">3</span></div>
+
+        <div class="row sel">
+          <div class="ic tk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">SEC-<mark>1745</mark> · SQL injection in <code>OrderRepository.findByCustomer</code></div>
+            <div class="sb">order-service · awaiting your approval · <b>SLA 6d</b></div>
+          </div>
+          <div class="meta">
+            <span class="badge crit">Critical</span>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+
+        <div class="row">
+          <div class="ic tk h">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">SEC-<mark>1747</mark> · Missing CSRF token in <code>BillingController</code></div>
+            <div class="sb">billing · in progress · <b>DEV agent · 62%</b></div>
+          </div>
+          <div class="meta">
+            <span class="badge" style="background:var(--orange-soft);color:var(--orange)">High</span>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+
+        <div class="row">
+          <div class="ic tk m">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">SEC-<mark>1748</mark> · Weak random in token generator</div>
+            <div class="sb">auth-service · queued · @j.reviewer</div>
+          </div>
+          <div class="meta">
+            <span class="badge med">Medium</span>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- PLAYBOOKS -->
+      <div class="grp">
+        <div class="gh">Playbooks <span class="ct">1</span></div>
+
+        <div class="row">
+          <div class="ic pb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti"><code>spring-sql-injection@2.3</code> · used on SEC-<mark>1745</mark></div>
+            <div class="sb">CWE-89 · 12 uses · <b>100% success</b> · T1 auto-merge tier</div>
+          </div>
+          <div class="meta">
+            <span class="badge" style="background:var(--green-soft);color:var(--green)">T1</span>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- CEREMONIES -->
+      <div class="grp">
+        <div class="gh">Ceremonies <span class="ct">1</span></div>
+
+        <div class="row">
+          <div class="ic set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">Sprint 7 Review · SEC-<mark>1745</mark> demo on agenda</div>
+            <div class="sb">Fri May 15 · 14:00 PT · Zoom · 4 attendees</div>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="grp">
+        <div class="gh">People <span class="ct">2</span></div>
+
+        <div class="row">
+          <div class="ic av-jr"></div>
+          <div class="info">
+            <div class="ti">J. Reviewer · approved SEC-<mark>1745</mark></div>
+            <div class="sb">on-call security eng · approved at 10:31</div>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+
+        <div class="row">
+          <div class="ic av-alice"></div>
+          <div class="info">
+            <div class="ti">Alice Brown · pending on SEC-<mark>1745</mark></div>
+            <div class="sb">security lead · final approver · <b>your turn</b></div>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- COMMANDS -->
+      <div class="grp">
+        <div class="gh">Commands <span class="ct">2</span></div>
+
+        <div class="row">
+          <div class="ic cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">Approve SEC-<mark>1745</mark></div>
+            <div class="sb">opens approval modal · <b>requires 2nd approver</b></div>
+          </div>
+          <div class="meta">
+            <span class="kg" style="display:inline-flex;gap:3px">
+              <kbd style="padding:1px 5px;background:var(--surface-2);border-radius:3px;border:1px solid var(--line);font-size:9.5px;color:var(--ink-2)">⌘</kbd><kbd style="padding:1px 5px;background:var(--surface-2);border-radius:3px;border:1px solid var(--line);font-size:9.5px;color:var(--ink-2)">↵</kbd>
+            </span>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+
+        <div class="row">
+          <div class="ic cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </div>
+          <div class="info">
+            <div class="ti">Replay SEC-<mark>1745</mark> in pilot sandbox</div>
+            <div class="sb">opens Pilot &amp; Replay drawer · read-only</div>
+          </div>
+          <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="ft">
+      <span class="kg"><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span class="kg"><kbd>↵</kbd> open</span>
+      <span class="kg"><kbd>⌘</kbd><kbd>↵</kbd> open in new tab</span>
+      <span class="sp-spacer"></span>
+      <span class="scope-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        scoped to <b>your workspace</b>
+      </span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+
+  // Keyboard nav for the demo
+  const rows = Array.from(document.querySelectorAll('.row'));
+  let idx = rows.findIndex(r => r.classList.contains('sel'));
+  function setSel(n){
+    if (idx >= 0) rows[idx].classList.remove('sel');
+    idx = (n + rows.length) % rows.length;
+    rows[idx].classList.add('sel');
+    rows[idx].scrollIntoView({block:'nearest'});
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown'){ e.preventDefault(); setSel(idx + 1); }
+    if (e.key === 'ArrowUp'){ e.preventDefault(); setSel(idx - 1); }
+  });
+  rows.forEach((r,i) => r.addEventListener('mouseenter', () => { if (idx>=0) rows[idx].classList.remove('sel'); idx=i; r.classList.add('sel'); }));
+</script>
+
+</body>
+</html>

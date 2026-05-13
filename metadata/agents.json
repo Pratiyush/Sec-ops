@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "policy": "secops-policy@v3.2",
+  "agents": [
+    {
+      "code": "SCN",
+      "name": "Scanner",
+      "role": "Pulls findings from Fortify, Sonatype and external feeds.",
+      "tier": "T0",
+      "state": "idle",
+      "permissions": ["read:fortify", "read:sonatype", "write:intake-queue"],
+      "currentTask": null
+    },
+    {
+      "code": "TRG",
+      "name": "Triage",
+      "role": "Classifies findings into can-fix / needs-review / too-complex.",
+      "tier": "T0",
+      "state": "idle",
+      "permissions": ["read:intake-queue", "write:triage-verdicts"],
+      "lastVerdictBatch": { "canFix": 14, "needsReview": 3, "tooComplex": 4 }
+    },
+    {
+      "code": "DEV",
+      "name": "Developer",
+      "role": "Implements fixes via playbooks; opens merge requests.",
+      "tier": "T1",
+      "state": "working",
+      "permissions": ["read:repo", "write:branch", "open:mr"],
+      "currentTask": "SEC-1745",
+      "tokenSpend": { "used": 18420, "budget": 25000 },
+      "mergeRate": 0.98
+    },
+    {
+      "code": "REV",
+      "name": "Reviewer",
+      "role": "Runs regression matrix, raises gates, drafts verdict.",
+      "tier": "T1",
+      "state": "idle",
+      "permissions": ["read:repo", "run:tests", "write:verdicts"]
+    },
+    {
+      "code": "ORC",
+      "name": "Orchestrator",
+      "role": "Coordinates scrum, enforces policy, schedules ceremonies.",
+      "tier": "T2",
+      "state": "idle",
+      "permissions": ["read:*", "write:sprint", "write:ceremonies", "read:policy"]
+    }
+  ]
+}

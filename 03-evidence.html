@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Evidence · Remediation · SecOps</title>
+<meta name="description" content="Evidence tab — 12 artifacts across 5 sources grouped Scanner / Code / Tests / Policy / Reasoning."/>
+<meta name="secops:screen-id" content="03"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Evidence · Remediation · SecOps"/>
+<meta property="og:description" content="Evidence tab — 12 artifacts across 5 sources grouped Scanner / Code / Tests / Policy / Reasoning."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03';padding-bottom:calc(72px + var(--safe-bottom))}
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* ===== TOP BAR (shared) ===== */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  /* ===== URL BAR ===== */
+  .url-bar{background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap}
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  /* ===== MAIN ===== */
+  .main{max-width:1180px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  /* ===== PAGE HEADER ===== */
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .page-header .ids{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-3);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .page-header .ids code{background:var(--surface-2);padding:2px 7px;border-radius:4px;color:var(--ink-2)}
+  h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:-.02em;line-height:1.25}
+  @media (min-width:640px){h1{font-size:26px}}
+  .header-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .sev{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+  .sev::before{content:'';width:5px;height:5px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .stage-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-2)}
+  .page-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover{background:var(--surface-2)}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  /* ===== STAGE BAR ===== */
+  .stage-bar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px}
+  .stage-bar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+  .stage-bar-head .now-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace}
+  .stage-bar-head .now-value{font-size:15px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+  .stage-progress{font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .stage-track{display:flex;gap:4px}
+  .stage-pill{flex:1;height:6px;background:var(--surface-2);border-radius:3px;position:relative;cursor:pointer}
+  .stage-pill.done{background:var(--ink)}
+  .stage-pill.now{background:linear-gradient(90deg,var(--ink) 60%,var(--surface-2) 60%)}
+  .stage-pill-labels{display:flex;gap:4px;margin-top:8px}
+  .stage-pill-labels span{flex:1;font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+  .stage-pill-labels span.now{color:var(--ink);font-weight:600}
+  .stage-pill-labels span.done{color:var(--ink-2)}
+
+  /* ===== CTX TABS ===== */
+  .ctx-tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ctx-tabs::-webkit-scrollbar{display:none}
+  .ctx-tab{padding:9px 14px;border-radius:7px;font-size:13px;color:var(--ink-3);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .ctx-tab:hover{color:var(--ink)}
+  .ctx-tab.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(12,10,9,.05)}
+  .ctx-tab .badge{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--surface-3);color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .ctx-tab.active .badge{background:var(--ink);color:var(--bg)}
+  .ctx-tab .badge.alert{background:var(--red);color:#fff}
+
+  /* ===================== EVIDENCE-SPECIFIC ===================== */
+
+  /* Tab subtitle row */
+  .ev-intro{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;margin-bottom:18px;
+  }
+  .ev-intro .lede{
+    color:var(--ink-3);font-size:13px;line-height:1.5;margin:0;max-width:600px;
+  }
+  .ev-intro .controls{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* Filter chips */
+  .filter-chips{
+    display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;padding-bottom:2px;
+  }
+  .filter-chips::-webkit-scrollbar{display:none}
+  .chip{
+    padding:6px 12px;border:1px solid var(--line);border-radius:20px;
+    background:var(--surface);font-size:12px;color:var(--ink-2);font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+    transition:background .15s, border-color .15s;
+  }
+  .chip:hover{background:var(--surface-2)}
+  .chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .chip .ct{
+    font-size:10px;padding:1px 6px;border-radius:8px;
+    background:var(--surface-2);color:var(--ink-3);
+    font-family:'Geist Mono',monospace;font-weight:600;
+  }
+  .chip.active .ct{background:rgba(255,255,255,.15);color:var(--bg)}
+
+  /* Stats summary card */
+  .ev-stats{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:16px 18px;margin-bottom:16px;display:grid;
+    grid-template-columns:repeat(2,1fr);gap:14px;
+  }
+  @media (min-width:640px){.ev-stats{grid-template-columns:repeat(4,1fr)}}
+  .ev-stat{display:flex;flex-direction:column;gap:4px}
+  .ev-stat .v{font-size:22px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum';line-height:1}
+  .ev-stat .l{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;font-family:'Geist Mono',monospace}
+
+  /* Group card */
+  .ev-group{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px;
+  }
+  .ev-group-head{
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;cursor:pointer;
+    transition:background .15s;
+  }
+  .ev-group-head:hover{background:var(--surface-2)}
+  .ev-group-head .chev{
+    width:18px;height:18px;color:var(--ink-3);
+    transition:transform .2s;
+  }
+  .ev-group.collapsed .chev{transform:rotate(-90deg)}
+  .ev-group.collapsed .ev-group-body{display:none}
+  .ev-group-icon{
+    width:32px;height:32px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    font-weight:700;font-size:13px;color:#fff;letter-spacing:-.02em;
+  }
+  .ev-group-icon.scanner{background:#cc0000}
+  .ev-group-icon.code{background:#fc6d26}
+  .ev-group-icon.test{background:var(--green)}
+  .ev-group-icon.policy{background:var(--purple)}
+  .ev-group-icon.agent{background:var(--ink)}
+  .ev-group-info{flex:1;min-width:0}
+  .ev-group-info h4{margin:0;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .ev-group-info .meta{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:'Geist Mono',monospace}
+  .ev-group-head .ct{
+    background:var(--surface-2);padding:2px 8px;border-radius:10px;
+    font-size:11px;color:var(--ink-2);font-family:'Geist Mono',monospace;font-weight:600;
+  }
+
+  /* Evidence row */
+  .ev-row{
+    display:grid;grid-template-columns:24px 1fr auto;gap:12px;
+    padding:12px 16px;border-bottom:1px solid var(--line-2);
+    align-items:center;font-size:13px;
+    transition:background .15s;
+  }
+  @media (min-width:640px){
+    .ev-row{grid-template-columns:24px 1fr auto auto auto;gap:14px}
+  }
+  .ev-row:last-child{border:none}
+  .ev-row:hover{background:var(--surface-2)}
+  .ev-row .row-icon{
+    width:24px;height:24px;border-radius:6px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;color:var(--ink-3);
+    flex-shrink:0;
+  }
+  .ev-row .row-icon svg{width:14px;height:14px}
+  .ev-row .row-icon.ok{background:var(--green-soft);color:var(--green)}
+  .ev-row .row-icon.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .ev-row .row-icon.fail{background:var(--red-soft);color:var(--red)}
+  .ev-row .row-icon.info{background:var(--blue-soft);color:var(--blue)}
+
+  .ev-name{
+    font-weight:500;color:var(--ink);min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .ev-name .desc{
+    display:block;font-weight:400;font-size:11px;color:var(--ink-3);
+    margin-top:2px;font-family:'Geist',sans-serif;
+    text-overflow:ellipsis;overflow:hidden;
+  }
+
+  .ev-meta-chips{
+    display:none;align-items:center;gap:6px;flex-shrink:0;
+  }
+  @media (min-width:640px){.ev-meta-chips{display:flex}}
+  .ev-meta-chip{
+    font-size:10px;padding:2px 7px;border-radius:4px;
+    background:var(--surface-2);color:var(--ink-3);
+    font-family:'Geist Mono',monospace;font-weight:500;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .ev-meta-chip.ok{background:var(--green-soft);color:var(--green)}
+  .ev-meta-chip.fail{background:var(--red-soft);color:var(--red)}
+  .ev-meta-chip.warn{background:var(--yellow-soft);color:var(--yellow)}
+
+  .ev-time{
+    font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;
+    white-space:nowrap;flex-shrink:0;
+  }
+  .ev-actions{
+    display:flex;gap:4px;flex-shrink:0;
+  }
+  .ev-act-btn{
+    width:28px;height:28px;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-3);transition:background .15s, color .15s;
+  }
+  .ev-act-btn:hover{background:var(--surface-3);color:var(--ink)}
+  .ev-act-btn svg{width:14px;height:14px}
+
+  /* Code preview inside a row (expandable) */
+  .ev-row-expanded{
+    padding:0 16px 14px;border-bottom:1px solid var(--line-2);
+    grid-column:1/-1;
+  }
+  .code-block{
+    background:#0c0a09;color:#fafaf9;border-radius:8px;padding:12px 14px;
+    font-family:'Geist Mono',monospace;font-size:11px;line-height:1.7;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  @media (min-width:640px){.code-block{font-size:12px}}
+  .code-block .del{color:#fca5a5;background:rgba(127,29,29,.3);display:block;padding:0 6px;white-space:pre}
+  .code-block .add{color:#86efac;background:rgba(20,83,45,.3);display:block;padding:0 6px;white-space:pre}
+  .code-block .ctx{color:#a8a29e;display:block;padding:0 6px;white-space:pre}
+  .code-block .hl{background:rgba(202,138,4,.2);color:#facc15;display:block;padding:0 6px;white-space:pre}
+  .code-meta{font-size:11px;color:var(--ink-3);margin-top:6px;font-family:'Geist Mono',monospace;display:flex;gap:8px;flex-wrap:wrap}
+  .code-meta b{color:var(--ink-2);font-weight:500}
+
+  /* Timeline (audit ledger) */
+  .timeline-card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;
+  }
+  .timeline-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .timeline-head h4{margin:0;font-size:14px;font-weight:600}
+  .timeline-head .sub{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .timeline-body{padding:14px 16px}
+  .tl-row{
+    position:relative;padding-left:28px;padding-bottom:14px;
+  }
+  .tl-row::before{
+    content:'';position:absolute;left:8px;top:18px;bottom:-6px;width:2px;
+    background:var(--line);border-radius:1px;
+  }
+  .tl-row:last-child{padding-bottom:0}
+  .tl-row:last-child::before{display:none}
+  .tl-row .tl-dot{
+    position:absolute;left:0;top:4px;width:18px;height:18px;
+    border-radius:50%;background:var(--surface);border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .tl-row.done .tl-dot{background:var(--green);border-color:var(--green);color:#fff}
+  .tl-row.done .tl-dot svg{width:10px;height:10px;stroke-width:3}
+  .tl-row.info .tl-dot{background:var(--blue);border-color:var(--blue);color:#fff}
+  .tl-row.info .tl-dot svg{width:8px;height:8px}
+  .tl-row .tl-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .tl-row .tl-actor{font-weight:600;font-size:13px}
+  .tl-row .tl-verb{font-size:12px;color:var(--ink-3)}
+  .tl-row .tl-time{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;margin-left:auto}
+  .tl-row .tl-body{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.5}
+  .tl-row .tl-body code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .tl-row .tl-body a{color:var(--blue);text-decoration:underline}
+
+  /* Empty state for filtered groups */
+  .empty-state{
+    padding:24px;text-align:center;color:var(--ink-3);font-size:13px;
+  }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-bottom))}
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;border-radius:8px;min-height:var(--tap);position:relative}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="brand">
+    <div class="brand-mark">SO</div>
+    <div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div>
+  </div>
+  <nav class="top-nav">
+    <button class="top-tab active">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab">Intake <span class="count">14</span></button>
+    <button class="top-tab">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+  <div class="top-right">
+    <div class="agent-pill"><span class="pulse-dot"></span><span class="label">Agent working</span></div>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn" onclick="toggleTheme()"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>remediation<span class="url-prim">&issue=</span>issue-sec-1745<span class="url-prim">&tab=</span>evidence</span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="ids">
+        <code>SEC-1745</code><span>·</span><code>FOR-5183</code><span>·</span><span>order-service</span>
+      </div>
+      <h1>SQL injection in OrderRepository.findByCustomer</h1>
+      <div class="header-meta">
+        <span class="sev sev-crit">Critical</span>
+        <span class="stage-tag">CWE-89</span>
+        <span class="stage-tag">spring-sql-injection@2.3</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Previous</button>
+      <button class="btn sm">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STAGE BAR -->
+  <div class="stage-bar">
+    <div class="stage-bar-head">
+      <div>
+        <div class="now-label">Current stage</div>
+        <div class="now-value">Awaiting human approval</div>
+      </div>
+      <div class="stage-progress">5 of 7 · 71%</div>
+    </div>
+    <div class="stage-track">
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill now"></button>
+      <button class="stage-pill"></button>
+      <button class="stage-pill"></button>
+    </div>
+    <div class="stage-pill-labels">
+      <span class="done">Triaged</span>
+      <span class="done">Planned</span>
+      <span class="done">Coded</span>
+      <span class="done">Tested</span>
+      <span class="now">Approval</span>
+      <span>Merge</span>
+      <span>Verified</span>
+    </div>
+  </div>
+
+  <!-- CTX TABS -->
+  <div class="ctx-tabs" role="tablist">
+    <button class="ctx-tab">Overview</button>
+    <button class="ctx-tab active">Evidence <span class="badge">12</span></button>
+    <button class="ctx-tab">Human Gates <span class="badge alert">1</span></button>
+    <button class="ctx-tab">Regression</button>
+    <button class="ctx-tab">Verdict</button>
+  </div>
+
+  <!-- ============== EVIDENCE TAB CONTENT ============== -->
+
+  <!-- Intro & controls -->
+  <div class="ev-intro">
+    <p class="lede">Every artifact the agent produced or consulted. Used by approvers now and by auditors later — everything is traceable to a source system.</p>
+    <div class="controls">
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export bundle
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="ev-stats">
+    <div class="ev-stat"><div class="v">12</div><div class="l">Artifacts</div></div>
+    <div class="ev-stat"><div class="v">5</div><div class="l">Sources</div></div>
+    <div class="ev-stat"><div class="v">6</div><div class="l">Auto-collected</div></div>
+    <div class="ev-stat"><div class="v">100%</div><div class="l">Hashed &amp; signed</div></div>
+  </div>
+
+  <!-- Filter chips -->
+  <div class="filter-chips" role="tablist">
+    <button class="chip active">All <span class="ct">12</span></button>
+    <button class="chip">Scanner <span class="ct">3</span></button>
+    <button class="chip">Code <span class="ct">2</span></button>
+    <button class="chip">Tests <span class="ct">3</span></button>
+    <button class="chip">Policy <span class="ct">2</span></button>
+    <button class="chip">Agent reasoning <span class="ct">2</span></button>
+  </div>
+
+  <!-- GROUP 1: Scanner -->
+  <div class="ev-group">
+    <div class="ev-group-head" onclick="toggleGroup(this)">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="ev-group-icon scanner">F</div>
+      <div class="ev-group-info">
+        <h4>Scanner output</h4>
+        <div class="meta">Fortify SSC · Sonatype cross-check</div>
+      </div>
+      <span class="ct">3 items</span>
+    </div>
+    <div class="ev-group-body">
+
+      <div class="ev-row">
+        <div class="row-icon fail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="ev-name">
+          Original finding · FOR-5183
+          <span class="desc">SQL injection at OrderRepository.java:87 · column 23 · taint flow from HTTP param "customerId"</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip fail">Critical</span>
+          <span class="ev-meta-chip">SAST</span>
+        </div>
+        <span class="ev-time">May 10 · 22:08</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn" title="Preview" onclick="toggleExpand('ev-fortify-1')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="ev-act-btn" title="Open in Fortify">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="ev-row-expanded" id="ev-fortify-1" style="display:none">
+        <div class="code-block"><span class="ctx">// OrderRepository.java — Fortify dataflow trace</span>
+<span class="hl">  Source: HttpServletRequest.getParameter("customerId")  // line 84</span>
+        ↓
+  Pass through: String customerId  // line 85
+        ↓
+<span class="hl">  Sink: jdbc.queryForList(sql + customerId)  // line 87</span>
+<span class="ctx">// Vulnerable path: 3 steps · no sanitization detected</span></div>
+        <div class="code-meta">
+          <span><b>Hash:</b> sha256:8f3a...c91d</span>
+          <span><b>Scanner:</b> Fortify SSC 23.2.1</span>
+          <span><b>Rulepack:</b> Core Java 2025.1</span>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ev-name">
+          Rescan after fix · FOR-5183 marked Closed
+          <span class="desc">Same rulepack · finding no longer present · no new findings introduced</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">Resolved</span>
+          <span class="ev-meta-chip">SAST</span>
+        </div>
+        <span class="ev-time">Today · 10:14</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="ev-name">
+          Sonatype SCA cross-check
+          <span class="desc">No related CVE in dependencies · ORM library versions are current</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">Clean</span>
+          <span class="ev-meta-chip">SCA</span>
+        </div>
+        <span class="ev-time">Today · 10:14</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GROUP 2: Code changes -->
+  <div class="ev-group">
+    <div class="ev-group-head" onclick="toggleGroup(this)">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="ev-group-icon code">G</div>
+      <div class="ev-group-info">
+        <h4>Code changes</h4>
+        <div class="meta">GitLab · branch <code style="background:none;padding:0;color:inherit">fix/SEC-1745</code></div>
+      </div>
+      <span class="ct">2 items</span>
+    </div>
+    <div class="ev-group-body">
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="ev-name">
+          Merge request !8442 · fix(security): parameterize OrderRepository query
+          <span class="desc">+18 / −4 lines · OrderRepository.java · approved by Reviewer Agent + J. Reviewer</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">CI green</span>
+          <span class="ev-meta-chip">2 approvals</span>
+        </div>
+        <span class="ev-time">2h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn" onclick="toggleExpand('ev-diff-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row-expanded" id="ev-diff-1" style="display:none">
+        <div class="code-block"><span class="ctx">  public List&lt;Order&gt; findByCustomer(String customerId) {</span>
+<span class="del">-     return jdbcTemplate.queryForList(</span>
+<span class="del">-         "SELECT * FROM orders WHERE customer_id = " + customerId);</span>
+<span class="add">+     return jdbcTemplate.queryForList(</span>
+<span class="add">+         "SELECT * FROM orders WHERE customer_id = ?", customerId);</span>
+<span class="ctx">  }</span></div>
+        <div class="code-meta">
+          <span><b>Commit:</b> 9a7f3d2</span>
+          <span><b>Signed by:</b> Developer Agent · GPG verified</span>
+          <span><b>Files touched:</b> 1 of 1 expected</span>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="ev-name">
+          Commit history · 9a7f3d2
+          <span class="desc">Single commit · clean, parametric replacement · no force-push</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip">1 commit</span>
+          <span class="ev-meta-chip ok">GPG signed</span>
+        </div>
+        <span class="ev-time">2h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GROUP 3: Test results -->
+  <div class="ev-group">
+    <div class="ev-group-head" onclick="toggleGroup(this)">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="ev-group-icon test">T</div>
+      <div class="ev-group-info">
+        <h4>Test &amp; CI results</h4>
+        <div class="meta">JUnit · regression suite · sandbox run</div>
+      </div>
+      <span class="ct">3 items</span>
+    </div>
+    <div class="ev-group-body">
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ev-name">
+          JUnit run · 47 of 47 passing
+          <span class="desc">Includes 3 new SqlInjectionRegressionTest cases for malicious inputs</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">47/47</span>
+          <span class="ev-meta-chip">2m 14s</span>
+        </div>
+        <span class="ev-time">1h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn" onclick="toggleExpand('ev-tests-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row-expanded" id="ev-tests-1" style="display:none">
+        <div class="code-block"><span class="ctx">$ mvn test -Dtest=SqlInjectionRegressionTest</span>
+<span class="add">[INFO] Running SqlInjectionRegressionTest</span>
+<span class="add">[INFO]   ✓ rejects_classic_or_injection      (53ms)</span>
+<span class="add">[INFO]   ✓ rejects_drop_table_attempt        (41ms)</span>
+<span class="add">[INFO]   ✓ rejects_union_select_exfiltration (62ms)</span>
+<span class="add">[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0</span>
+<span class="ctx">[INFO] BUILD SUCCESS — total tests: 47/47 passing</span></div>
+        <div class="code-meta">
+          <span><b>Pipeline:</b> gitlab/order-service · build #4827</span>
+          <span><b>Runner:</b> sandbox-java-17</span>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </div>
+        <div class="ev-name">
+          Sandbox execution log · full agent session
+          <span class="desc">All shell commands the Developer Agent ran · 4m 12s wall time</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip">147 lines</span>
+          <span class="ev-meta-chip ok">Sandboxed</span>
+        </div>
+        <span class="ev-time">2h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn" onclick="toggleExpand('ev-tests-2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row-expanded" id="ev-tests-2" style="display:none">
+        <div class="code-block"><span class="ctx">[09:14:22] $ git clone git@gitlab:order-service.git</span>
+<span class="ctx">[09:14:48] $ cd order-service &amp;&amp; git checkout -b fix/SEC-1745</span>
+<span class="ctx">[09:15:12] $ grep -n "queryForList" src/main/java/.../OrderRepository.java</span>
+<span class="ctx">           87:   return jdbcTemplate.queryForList(</span>
+<span class="ctx">[09:16:03] $ apply playbook: spring-sql-injection@2.3</span>
+<span class="add">[09:16:21]   ✓ replaced concatenation with ? placeholder</span>
+<span class="add">[09:16:42]   ✓ generated regression test from template</span>
+<span class="ctx">[09:17:21] $ mvn test -q</span>
+<span class="add">[09:18:35]   ✓ BUILD SUCCESS · 47/47 tests pass</span>
+<span class="ctx">[09:18:48] $ git commit -S -am "fix(security): parameterize..."</span>
+<span class="ctx">[09:18:52] $ git push -u origin fix/SEC-1745</span>
+<span class="ctx">[09:18:58] → opened MR !8442</span></div>
+        <div class="code-meta">
+          <span><b>Sandbox:</b> Modal · ubuntu-22.04-java17</span>
+          <span><b>Network:</b> egress only to gitlab.company.com</span>
+          <span><b>Wall time:</b> 4m 12s</span>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><path d="M12 16V8"/></svg>
+        </div>
+        <div class="ev-name">
+          CI pipeline · build #4827
+          <span class="desc">Compile · Test · Lint · SAST · Container scan — all green</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">5/5 stages</span>
+          <span class="ev-meta-chip">7m 41s</span>
+        </div>
+        <span class="ev-time">1h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GROUP 4: Policy & reference -->
+  <div class="ev-group">
+    <div class="ev-group-head" onclick="toggleGroup(this)">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="ev-group-icon policy">P</div>
+      <div class="ev-group-info">
+        <h4>Policy &amp; reference</h4>
+        <div class="meta">Playbook · Confluence standards</div>
+      </div>
+      <span class="ct">2 items</span>
+    </div>
+    <div class="ev-group-body">
+
+      <div class="ev-row">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="ev-name">
+          spring-sql-injection@2.3 · playbook used
+          <span class="desc">v2.3 published by @alice · 47 prior uses · 98% success rate</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip">v2.3</span>
+          <span class="ev-meta-chip ok">approved</span>
+        </div>
+        <span class="ev-time">applied 2h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="ev-name">
+          Confluence · Secure Coding Standards · Java
+          <span class="desc">Internal standard SEC-STD-04: SQL queries must use parameter binding</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip">v4.1</span>
+          <span class="ev-meta-chip">SEC-STD-04</span>
+        </div>
+        <span class="ev-time">referenced</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GROUP 5: Agent reasoning -->
+  <div class="ev-group">
+    <div class="ev-group-head" onclick="toggleGroup(this)">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="ev-group-icon agent">AI</div>
+      <div class="ev-group-info">
+        <h4>Agent reasoning</h4>
+        <div class="meta">Triage decision · Reviewer verdict</div>
+      </div>
+      <span class="ct">2 items</span>
+    </div>
+    <div class="ev-group-body">
+
+      <div class="ev-row">
+        <div class="row-icon info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <div class="ev-name">
+          Triage agent · decision transcript
+          <span class="desc">Why CWE-89 → spring-sql-injection@2.3 · confidence 98%</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip">confidence 98%</span>
+          <span class="ev-meta-chip">847 tokens</span>
+        </div>
+        <span class="ev-time">2h ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn" onclick="toggleExpand('ev-reason-1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="ev-row-expanded" id="ev-reason-1" style="display:none">
+        <div class="code-block" style="font-family:'Geist',sans-serif;font-size:12px;line-height:1.6;white-space:normal;color:#fafaf9">
+<span class="ctx" style="display:inline">Reasoning:</span> The finding is a textbook CWE-89 with a clear taint flow from <span class="hl" style="display:inline">HttpServletRequest.getParameter</span> to <span class="hl" style="display:inline">jdbcTemplate.queryForList</span> via string concatenation. The codebase is Spring Boot with JDBC Template usage (not raw JDBC, not JPA), which exactly matches the <span class="hl" style="display:inline">spring-sql-injection@2.3</span> playbook scope. No similar pattern exists in nearby files, so this is an isolated fix (not a cross-cutting refactor). The playbook has been applied 47 times with 98% success — confidence to proceed.
+        </div>
+        <div class="code-meta">
+          <span><b>Model:</b> Claude (DeepAgent triage)</span>
+          <span><b>Inputs considered:</b> finding metadata, repo manifest, playbook index</span>
+          <span><b>Alternatives rejected:</b> manual escalation, jpa-binding playbook</span>
+        </div>
+      </div>
+
+      <div class="ev-row">
+        <div class="row-icon ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ev-name">
+          Reviewer agent · approval
+          <span class="desc">"Single-file change, playbook applied cleanly, regression tests verify the fix"</span>
+        </div>
+        <div class="ev-meta-chips">
+          <span class="ev-meta-chip ok">approved</span>
+          <span class="ev-meta-chip">312 tokens</span>
+        </div>
+        <span class="ev-time">11m ago</span>
+        <div class="ev-actions">
+          <button class="ev-act-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AUDIT LEDGER (chronological timeline of evidence) -->
+  <div class="timeline-card">
+    <div class="timeline-head">
+      <h4>Audit ledger</h4>
+      <span class="sub">Chronological · hash-chained · signed</span>
+    </div>
+    <div class="timeline-body">
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Scanner Agent</span>
+          <span class="tl-verb">ingested finding</span>
+          <span class="tl-time">May 10 · 22:08</span>
+        </div>
+        <div class="tl-body">Pulled FOR-5183 from Fortify SSC · classified as Critical CWE-89</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Triage Agent</span>
+          <span class="tl-verb">selected playbook</span>
+          <span class="tl-time">May 10 · 22:09</span>
+        </div>
+        <div class="tl-body">Matched to <code>spring-sql-injection@2.3</code> · confidence 98% · routed to Sprint 7</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Alice Brown</span>
+          <span class="tl-verb">added to sprint</span>
+          <span class="tl-time">May 11 · 09:23</span>
+        </div>
+        <div class="tl-body">Approved for inclusion in Sprint 7 during planning ceremony</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Developer Agent</span>
+          <span class="tl-verb">opened MR</span>
+          <span class="tl-time">May 12 · 09:18</span>
+        </div>
+        <div class="tl-body">Applied playbook · pushed branch <code>fix/SEC-1745</code> · MR !8442 opened</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">CI pipeline</span>
+          <span class="tl-verb">passed</span>
+          <span class="tl-time">May 12 · 09:26</span>
+        </div>
+        <div class="tl-body">5 of 5 stages green · build #4827 · 7m 41s</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Scanner Agent</span>
+          <span class="tl-verb">rescanned</span>
+          <span class="tl-time">May 12 · 10:14</span>
+        </div>
+        <div class="tl-body">FOR-5183 marked Closed · no new findings introduced</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">Reviewer Agent</span>
+          <span class="tl-verb">approved</span>
+          <span class="tl-time">May 12 · 10:27</span>
+        </div>
+        <div class="tl-body">Posted approval to MR · routed to J. Reviewer for sign-off</div>
+      </div>
+
+      <div class="tl-row done">
+        <div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="tl-head">
+          <span class="tl-actor">J. Reviewer</span>
+          <span class="tl-verb">approved</span>
+          <span class="tl-time">May 12 · 10:31</span>
+        </div>
+        <div class="tl-body">"LGTM — clean parametric replacement" · advanced to critical-severity gate</div>
+      </div>
+
+      <div class="tl-row info">
+        <div class="tl-dot"></div>
+        <div class="tl-head">
+          <span class="tl-actor">System</span>
+          <span class="tl-verb">awaiting final approval</span>
+          <span class="tl-time">May 12 · 10:32 → now</span>
+        </div>
+        <div class="tl-body">Notified <code>@alice</code> in AgentBook · 8m elapsed · SLA 6 days</div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  // Theme
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  // Group collapse
+  function toggleGroup(head){
+    head.parentElement.classList.toggle('collapsed');
+  }
+
+  // Row expand (preview)
+  function toggleExpand(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Filter chips
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

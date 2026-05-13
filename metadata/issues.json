@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "issues": [
+    {
+      "id": "SEC-1745",
+      "fortifyId": "FOR-5183",
+      "title": "SQL injection in OrderRepository.findByCustomer",
+      "severity": "critical",
+      "cwe": "CWE-89",
+      "service": "order-service",
+      "file": "src/main/java/com/example/order/OrderRepository.java",
+      "line": 42,
+      "playbook": "spring-sql-injection@2.3",
+      "status": "awaiting-approval",
+      "stage": "human-gate",
+      "stageProgress": "5/7",
+      "sprint": "S7",
+      "day": "8/10",
+      "approvers": {
+        "required": 4,
+        "signed": ["alice", "bob", "carol"],
+        "pending": ["dave"]
+      },
+      "evidence": {
+        "count": 12,
+        "groups": ["scanner", "code", "tests", "policy", "reasoning"]
+      },
+      "regression": {
+        "verdict": "Class A",
+        "checks": { "passed": 6, "total": 6 }
+      },
+      "policy": "secops-policy@v3.2",
+      "estimatedRollbackSeconds": 90,
+      "tokenSpend": { "used": 18420, "budget": 25000 }
+    },
+    {
+      "id": "SEC-1731",
+      "fortifyId": "FOR-5160",
+      "title": "Missing CSRF token on /api/orders/cancel",
+      "severity": "high",
+      "cwe": "CWE-352",
+      "service": "order-service",
+      "playbook": "spring-csrf@1.2",
+      "status": "in-progress",
+      "stage": "regression",
+      "sprint": "S7",
+      "policy": "secops-policy@v3.2"
+    },
+    {
+      "id": "SEC-1729",
+      "fortifyId": "FOR-5152",
+      "title": "Hardcoded JWT secret in application.yml",
+      "severity": "high",
+      "cwe": "CWE-798",
+      "service": "auth-service",
+      "playbook": "secret-rotation@1.0",
+      "status": "needs-review",
+      "sprint": "S7",
+      "policy": "secops-policy@v3.2"
+    },
+    {
+      "id": "SEC-1722",
+      "fortifyId": "FOR-5141",
+      "title": "Open redirect in payment callback handler",
+      "severity": "medium",
+      "cwe": "CWE-601",
+      "service": "payment-service",
+      "playbook": null,
+      "status": "too-complex",
+      "sprint": "S7",
+      "policy": "secops-policy@v3.2"
+    }
+  ]
+}

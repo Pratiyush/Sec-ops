@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Agent Registry · SecOps Workbench</title>
+<meta name="description" content="Agent Registry — 5 agents (SCN, TRG, DEV, REV, ORC) with permissions and autonomy tiers."/>
+<meta name="secops:screen-id" content="11"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Agent Registry · SecOps Workbench"/>
+<meta property="og:description" content="Agent Registry — 5 agents (SCN, TRG, DEV, REV, ORC) with permissions and autonomy tiers."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO — policy overview */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:flex-start;gap:14px}
+  .hero-orb{width:44px;height:44px;border-radius:12px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .hero-orb svg{width:20px;height:20px;stroke-width:2.5}
+  .hero-t{flex:1;min-width:0}
+  .hero-t .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px}
+  .hero-t h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .hero-t .s{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+  .hero-t .s b{color:var(--ink-2);font-weight:600}
+  .hero-t .s code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* TIER LEGEND STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:14px;font-weight:700;font-family:'Geist Mono',monospace;letter-spacing:.02em}
+  .st .v.t1{color:var(--green)} .st .v.t2{color:var(--blue)} .st .v.t3{color:var(--yellow)} .st .v.t4{color:var(--red)}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* FILTER CHIPS */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchip .ct{font-family:'Geist Mono',monospace;font-size:10px;opacity:.7}
+  .fchip.active .ct{opacity:.85}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+
+  /* AGENT CARD */
+  .ag{margin:0 20px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:border-color .15s}
+  .ag:hover{border-color:var(--ink-4)}
+  .ag.working{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow-soft)}
+
+  .ah{padding:13px 14px;display:flex;align-items:flex-start;gap:12px}
+  .av{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;letter-spacing:-.02em}
+  .av.scn{background:var(--blue)} .av.scn::before{content:'SCN'}
+  .av.trg{background:var(--purple)} .av.trg::before{content:'TRG'}
+  .av.dev{background:var(--orange)} .av.dev::before{content:'DEV'}
+  .av.rev{background:var(--green)} .av.rev::before{content:'REV'}
+  .av.orc{background:var(--ink)} .av.orc::before{content:'ORC'}
+
+  .ainfo{flex:1;min-width:0}
+  .arow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+  .aname{font-size:14.5px;font-weight:600;letter-spacing:-.005em;color:var(--ink)}
+  .tier{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace}
+  .tier.t1{background:var(--green-soft);color:var(--green)}
+  .tier.t2{background:var(--blue-soft);color:var(--blue)}
+  .tier.t3{background:var(--yellow-soft);color:var(--yellow)}
+  .tier.t4{background:var(--red-soft);color:var(--red)}
+  .arole{font-size:12px;color:var(--ink-3);line-height:1.45;margin-top:2px}
+  .ver{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;margin-top:4px}
+
+  .state{font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+  .state::before{content:'';width:6px;height:6px;border-radius:50%}
+  .state.work{background:var(--yellow-soft);color:var(--yellow)}
+  .state.work::before{background:var(--yellow);animation:pulse 1.6s infinite}
+  .state.idle{background:var(--surface-2);color:var(--ink-3)}
+  .state.idle::before{background:var(--ink-4)}
+
+  /* Current task banner */
+  .cur{padding:10px 14px;background:var(--yellow-soft);display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+  .cur svg{width:13px;height:13px;color:var(--yellow);flex-shrink:0}
+  .cur b{color:var(--ink);font-weight:600}
+  .cur code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace}
+  .cur .pct{margin-left:auto;font-family:'Geist Mono',monospace;font-weight:600;color:var(--yellow)}
+
+  /* Stats grid in card body */
+  .agb{padding:12px 14px}
+  .gstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .gst{background:var(--surface-2);border-radius:8px;padding:9px 10px}
+  .gst .gv{font-size:16px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum';color:var(--ink)}
+  .gst .gv small{font-size:11px;font-weight:500;color:var(--ink-3);margin-left:3px}
+  .gst .gv.ok{color:var(--green)} .gst .gv.warn{color:var(--yellow)}
+  .gst .gl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:4px;font-weight:600;font-family:'Geist Mono',monospace}
+
+  /* Collapsible perms / activity */
+  .col{margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px}
+  .colh{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;margin-bottom:8px}
+  .colh .tl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .colh .tl svg{width:11px;height:11px;transition:transform .15s}
+  .colh.cls .tl svg{transform:rotate(-90deg)}
+  .colh .sm{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+
+  .perms{display:flex;flex-direction:column;gap:5px}
+  .perm{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:var(--surface-2);border-radius:6px;font-size:12px}
+  .perm .k{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+  .perm .k svg{width:12px;height:12px;flex-shrink:0}
+  .perm.allow .k svg{color:var(--green)}
+  .perm.gated .k svg{color:var(--yellow)}
+  .perm.deny .k svg{color:var(--red)}
+  .perm .kn{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .perm .pv{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+  .perm .pv.allow{background:var(--green-soft);color:var(--green)}
+  .perm .pv.gated{background:var(--yellow-soft);color:var(--yellow)}
+  .perm .pv.deny{background:var(--red-soft);color:var(--red)}
+
+  .acts{display:flex;flex-direction:column;gap:6px}
+  .actr{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:12px;line-height:1.5}
+  .actr .dt{width:6px;height:6px;border-radius:50%;background:var(--ink-4);flex-shrink:0;margin-top:6px}
+  .actr.ok .dt{background:var(--green)}
+  .actr.warn .dt{background:var(--yellow)}
+  .actr .tx{flex:1;color:var(--ink-2)}
+  .actr .tx code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--ink-2)}
+  .actr .tm{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* Footer of agent card */
+  .af{padding:9px 14px;border-top:1px solid var(--line-2);background:var(--surface-2);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  .af .mt{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-right:auto}
+  .af .mt b{color:var(--ink-2);font-weight:600}
+  .ab{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:5px;min-height:28px}
+  .ab:hover{background:var(--surface-3);color:var(--ink)}
+  .ab.danger{color:var(--red);border-color:var(--red-soft)}
+  .ab.danger:hover{background:var(--red-soft)}
+  .ab svg{width:11px;height:11px}
+
+  /* Add agent dashed row */
+  .add{margin:16px 20px 24px;padding:16px;border:1.5px dashed var(--line);border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-3);width:calc(100% - 40px);background:transparent}
+  .add:hover{border-color:var(--ink-3);color:var(--ink-2);background:var(--surface-2)}
+  .add .pc{width:30px;height:30px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .add .pc svg{width:14px;height:14px}
+  .add .ttx{flex:1;text-align:left}
+  .add .ttx b{font-weight:600;color:var(--ink-2);display:block}
+  .add .ttx small{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Tools · Operate
+      </div>
+      <h2>Agent Registry</h2>
+      <div class="hsub">Production agents · their roles, autonomy tiers, permissions, and current activity</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="hero-t">
+        <div class="l">Active policy · <code>secops-policy@v3.2</code></div>
+        <h3>5 agents · 1 working · 4 idle</h3>
+        <div class="s">Only the <b>Developer Agent</b> has <b>T1 auto-merge</b>, and only for playbooks with <b>≥10 prior successes</b> and severity ≤ medium. Critical-severity work always routes to human approval.</div>
+      </div>
+    </div>
+
+    <!-- TIER COUNTS -->
+    <div class="stats">
+      <div class="st"><div class="v t1">T1 · 1</div><div class="l">Auto-merge</div></div>
+      <div class="st"><div class="v t2">T2 · 3</div><div class="l">Auto-approve</div></div>
+      <div class="st"><div class="v t3">T3 · 1</div><div class="l">Drafts only</div></div>
+      <div class="st"><div class="v t4">T4 · 0</div><div class="l">Human req.</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <button class="fchip active">All <span class="ct">5</span></button>
+      <button class="fchip">Working <span class="ct">1</span></button>
+      <button class="fchip">Idle <span class="ct">4</span></button>
+      <button class="fchip">T1 only <span class="ct">1</span></button>
+    </div>
+
+    <!-- SECTION -->
+    <div class="sec">Production agents · 5<span class="ln"></span></div>
+
+    <!-- SCANNER -->
+    <article class="ag">
+      <div class="ah">
+        <div class="av scn"></div>
+        <div class="ainfo">
+          <div class="arow">
+            <span class="aname">Scanner Agent</span>
+            <span class="tier t2">T2</span>
+          </div>
+          <div class="arole">Ingests findings from connected sources, deduplicates, normalizes to internal schema</div>
+          <div class="ver">v3.4.1 · deployed 12d ago · runs nightly + on-demand</div>
+        </div>
+        <span class="state idle">Idle</span>
+      </div>
+      <div class="agb">
+        <div class="gstats">
+          <div class="gst"><div class="gv ok">28<small>d</small></div><div class="gl">Last 30d runs</div></div>
+          <div class="gst"><div class="gv ok">100%</div><div class="gl">Success</div></div>
+          <div class="gst"><div class="gv">3.2k</div><div class="gl">Tokens / run</div></div>
+        </div>
+        <div class="col">
+          <div class="colh" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Permissions</span>
+            <span class="sm">4 allow · 1 gated · 1 deny</span>
+          </div>
+          <div class="perms">
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.fortify.findings</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.sonatype.cves</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.jira.tickets</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.gitlab.secrets</span></span><span class="pv allow">allow</span></div>
+            <div class="perm gated"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span class="kn">write.internal.findings</span></span><span class="pv gated">gated</span></div>
+            <div class="perm deny"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span class="kn">write.git.code</span></span><span class="pv deny">deny</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="af">
+        <span class="mt">next run: <b>22:00 UTC</b></span>
+        <button class="ab">View logs</button>
+        <button class="ab">Configure</button>
+      </div>
+    </article>
+
+    <!-- TRIAGE -->
+    <article class="ag">
+      <div class="ah">
+        <div class="av trg"></div>
+        <div class="ainfo">
+          <div class="arow">
+            <span class="aname">Triage Agent</span>
+            <span class="tier t3">T3</span>
+          </div>
+          <div class="arole">Classifies findings, picks playbooks, estimates effort, flags too-complex</div>
+          <div class="ver">v2.8.0 · deployed 5d ago · invoked per finding</div>
+        </div>
+        <span class="state idle">Idle</span>
+      </div>
+      <div class="agb">
+        <div class="gstats">
+          <div class="gst"><div class="gv ok">147</div><div class="gl">Triaged this sprint</div></div>
+          <div class="gst"><div class="gv ok">94%</div><div class="gl">Accepted by human</div></div>
+          <div class="gst"><div class="gv">8.4k</div><div class="gl">Tokens / item</div></div>
+        </div>
+        <div class="col">
+          <div class="colh cls" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Permissions</span>
+            <span class="sm">3 allow · 1 gated</span>
+          </div>
+        </div>
+      </div>
+      <div class="af">
+        <span class="mt">avg latency: <b>4.2s</b></span>
+        <button class="ab">View logs</button>
+        <button class="ab">Configure</button>
+      </div>
+    </article>
+
+    <!-- DEVELOPER (WORKING) -->
+    <article class="ag working">
+      <div class="ah">
+        <div class="av dev"></div>
+        <div class="ainfo">
+          <div class="arow">
+            <span class="aname">Developer Agent</span>
+            <span class="tier t1">T1</span>
+          </div>
+          <div class="arole">Implements fixes from playbooks, writes regression tests, opens MRs</div>
+          <div class="ver">v4.2.3 · deployed 18h ago · invoked per ticket</div>
+        </div>
+        <span class="state work">Working</span>
+      </div>
+      <div class="cur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Working on <b>SEC-1747</b> · <code>spring-csrf@1.2</code> · 18m elapsed
+        <span class="pct">62%</span>
+      </div>
+      <div class="agb">
+        <div class="gstats">
+          <div class="gst"><div class="gv ok">42</div><div class="gl">Fixes this sprint</div></div>
+          <div class="gst"><div class="gv ok">98%</div><div class="gl">Merge success</div></div>
+          <div class="gst"><div class="gv warn">87k</div><div class="gl">Tokens this week</div></div>
+        </div>
+
+        <div class="col">
+          <div class="colh" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Permissions</span>
+            <span class="sm">3 allow · 2 gated · 2 deny</span>
+          </div>
+          <div class="perms">
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.repo.source</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">write.repo.branch</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">open.merge-request</span></span><span class="pv allow">allow</span></div>
+            <div class="perm gated"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span class="kn">merge.main · sev≤med + uses≥10</span></span><span class="pv gated">gated</span></div>
+            <div class="perm gated"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span class="kn">transition.jira.merged</span></span><span class="pv gated">gated</span></div>
+            <div class="perm deny"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span class="kn">write.auth-service.*</span></span><span class="pv deny">deny</span></div>
+            <div class="perm deny"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span class="kn">write.db.migrations</span></span><span class="pv deny">deny</span></div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="colh" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Recent activity</span>
+            <span class="sm">5 events · today</span>
+          </div>
+          <div class="acts">
+            <div class="actr ok"><span class="dt"></span><span class="tx">Started fix on <code>SEC-1747</code> with <code>spring-csrf@1.2</code></span><span class="tm">18m ago</span></div>
+            <div class="actr ok"><span class="dt"></span><span class="tx">Auto-merged <code>SEC-1742</code> · path traversal fix</span><span class="tm">2h ago</span></div>
+            <div class="actr ok"><span class="dt"></span><span class="tx">Opened MR <code>!8442</code> for <code>SEC-1745</code></span><span class="tm">2h ago</span></div>
+            <div class="actr warn"><span class="dt"></span><span class="tx">Token quota warning — 87k of 100k weekly budget used</span><span class="tm">5h ago</span></div>
+            <div class="actr ok"><span class="dt"></span><span class="tx">Auto-merged <code>SEC-1738</code> · SHA-1 → SHA-256</span><span class="tm">yesterday</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="af">
+        <span class="mt">sandbox: <b>java-17-v3</b></span>
+        <button class="ab">Live trace</button>
+        <button class="ab">Configure</button>
+        <button class="ab danger">Pause</button>
+      </div>
+    </article>
+
+    <!-- REVIEWER -->
+    <article class="ag">
+      <div class="ah">
+        <div class="av rev"></div>
+        <div class="ainfo">
+          <div class="arow">
+            <span class="aname">Reviewer Agent</span>
+            <span class="tier t2">T2</span>
+          </div>
+          <div class="arole">Reviews agent-produced MRs, validates diffs against playbook expectations, casts vote</div>
+          <div class="ver">v3.1.7 · deployed 3d ago · invoked per MR</div>
+        </div>
+        <span class="state idle">Ready</span>
+      </div>
+      <div class="agb">
+        <div class="gstats">
+          <div class="gst"><div class="gv ok">38</div><div class="gl">Reviewed this sprint</div></div>
+          <div class="gst"><div class="gv ok">91%</div><div class="gl">Vote matched human</div></div>
+          <div class="gst"><div class="gv">5.1k</div><div class="gl">Tokens / review</div></div>
+        </div>
+        <div class="col">
+          <div class="colh" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Permissions</span>
+            <span class="sm">3 allow · 2 gated</span>
+          </div>
+          <div class="perms">
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">read.merge-request.diff</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">post.merge-request.approve</span></span><span class="pv allow">allow</span></div>
+            <div class="perm allow"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span class="kn">post.merge-request.changes</span></span><span class="pv allow">allow</span></div>
+            <div class="perm gated"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span class="kn">route.alice.critical-crypto</span></span><span class="pv gated">gated</span></div>
+            <div class="perm gated"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span class="kn">block.merge · scope-violation</span></span><span class="pv gated">gated</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="af">
+        <span class="mt">last review: <b>11m ago · SEC-1745</b></span>
+        <button class="ab">View logs</button>
+        <button class="ab">Configure</button>
+      </div>
+    </article>
+
+    <!-- ORCHESTRATOR -->
+    <article class="ag">
+      <div class="ah">
+        <div class="av orc"></div>
+        <div class="ainfo">
+          <div class="arow">
+            <span class="aname">Orchestrator</span>
+            <span class="tier t2">T2</span>
+          </div>
+          <div class="arole">Routes work between agents, runs daily standup, manages handoffs and queue priority</div>
+          <div class="ver">v2.0.5 · deployed 9d ago · invoked on event + daily</div>
+        </div>
+        <span class="state idle">Idle</span>
+      </div>
+      <div class="agb">
+        <div class="gstats">
+          <div class="gst"><div class="gv ok">8</div><div class="gl">Standups this sprint</div></div>
+          <div class="gst"><div class="gv ok">3</div><div class="gl">Routes / hour</div></div>
+          <div class="gst"><div class="gv">1.8k</div><div class="gl">Tokens / event</div></div>
+        </div>
+        <div class="col">
+          <div class="colh cls" onclick="tog(this)">
+            <span class="tl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg> Permissions</span>
+            <span class="sm">5 allow · 1 gated</span>
+          </div>
+        </div>
+      </div>
+      <div class="af">
+        <span class="mt">next standup: <b>tomorrow 09:00</b></span>
+        <button class="ab">View logs</button>
+        <button class="ab">Configure</button>
+      </div>
+    </article>
+
+    <!-- ADD AGENT -->
+    <button class="add">
+      <div class="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="ttx">
+        <b>Add a new agent</b>
+        <small>From <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px">git.company.com/secops/agents</code> · proposes Researcher, Pen-test, …</small>
+      </div>
+    </button>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      policy: <b style="color:var(--ink-2)">secops-policy@v3.2</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export config
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  function tog(h){
+    h.classList.toggle('cls');
+    const list = h.nextElementSibling;
+    if (list) list.style.display = h.classList.contains('cls') ? 'none' : '';
+  }
+  document.querySelectorAll('.colh.cls').forEach(h => {
+    const list = h.nextElementSibling;
+    if (list) list.style.display = 'none';
+  });
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>

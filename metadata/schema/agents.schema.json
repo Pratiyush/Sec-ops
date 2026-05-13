@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secops.local/schema/agents.schema.json",
+  "title": "Agents manifest",
+  "type": "object",
+  "required": ["version", "agents"],
+  "properties": {
+    "version": { "type": "string" },
+    "policy":  { "type": "string" },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "role", "tier", "state"],
+        "properties": {
+          "code":  { "type": "string", "enum": ["SCN", "TRG", "DEV", "REV", "ORC"] },
+          "name":  { "type": "string" },
+          "role":  { "type": "string" },
+          "tier":  { "type": "string", "enum": ["T0", "T1", "T2", "T3"] },
+          "state": { "type": "string", "enum": ["idle", "working", "blocked", "paused"] },
+          "permissions": { "type": "array", "items": { "type": "string" } },
+          "currentTask": { "type": ["string", "null"] },
+          "tokenSpend":  { "type": "object" },
+          "mergeRate":   { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

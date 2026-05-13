@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Intake · SecOps Workbench</title>
+<meta name="description" content="Intake — 21 new findings, Triage Agent verdicts: 14 can-fix, 3 needs review, 4 too-complex."/>
+<meta name="secops:screen-id" content="07"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Intake · SecOps Workbench"/>
+<meta property="og:description" content="Intake — 21 new findings, Triage Agent verdicts: 14 can-fix, 3 needs review, 4 too-complex."/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03';padding-bottom:calc(120px + var(--safe-bottom))}
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* ===== SHARED TOP / URL BAR ===== */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  .url-bar{background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap}
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  .main{max-width:1180px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  /* ===== PAGE HEADER ===== */
+  .page-h{margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .page-h h1{font-size:24px;font-weight:600;margin:0 0 4px;letter-spacing:-.02em;line-height:1.2}
+  @media (min-width:640px){.page-h h1{font-size:28px}}
+  .page-h .lede{color:var(--ink-3);font-size:14px;margin:0;line-height:1.5}
+  .page-h .head-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.9}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  /* ===== WORKFLOW STRIP ===== */
+  .workflow{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:18px;
+    display:flex;align-items:center;gap:6px;overflow-x:auto;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  }
+  .workflow::-webkit-scrollbar{display:none}
+  .wf-step{display:flex;align-items:center;gap:8px;white-space:nowrap;scroll-snap-align:start;flex-shrink:0}
+  .wf-step .num{
+    width:22px;height:22px;border-radius:50%;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:600;color:var(--ink-3);
+    font-family:'Geist Mono',monospace;
+  }
+  .wf-step.done .num{background:var(--ink);color:var(--bg)}
+  .wf-step.now .num{background:var(--ink);color:var(--bg);position:relative}
+  .wf-step.now .num::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--ink);opacity:.2;animation:wfPulse 2s infinite}
+  @keyframes wfPulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:0;transform:scale(1.3)}}
+  .wf-step .lbl{font-size:12px;color:var(--ink-3);font-weight:500}
+  .wf-step.done .lbl,.wf-step.now .lbl{color:var(--ink)}
+  .wf-step.now .lbl{font-weight:600}
+  .wf-arrow{color:var(--ink-4);font-size:11px;flex-shrink:0;line-height:1}
+
+  /* ===== TRIAGE BANNER (agent recommendation) ===== */
+  .triage-banner{
+    background:linear-gradient(135deg, var(--purple-soft) 0%, var(--blue-soft) 100%);
+    border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:18px;
+    display:flex;align-items:flex-start;gap:16px;
+    position:relative;overflow:hidden;
+  }
+  .triage-banner::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(to bottom, var(--purple), var(--blue));
+  }
+  [data-theme="dark"] .triage-banner{background:linear-gradient(135deg, rgba(139,92,246,.12) 0%, rgba(37,99,235,.12) 100%)}
+  .tb-av{
+    width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    background:var(--ink);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;letter-spacing:-.02em;
+  }
+  .tb-av::before{content:'TRG'}
+  .tb-body{flex:1;min-width:0}
+  .tb-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .tb-head .name{font-weight:600;font-size:13px;color:var(--ink)}
+  .tb-head .role{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .tb-head .time{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-left:auto}
+  .tb-body p{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2)}
+  .tb-body p b{color:var(--ink);font-weight:600}
+  .tb-body p code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px;font-size:12px;color:var(--ink-2)}
+  [data-theme="dark"] .tb-body p code{background:rgba(255,255,255,.08)}
+  .tb-numbers{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+  .tb-num{display:flex;flex-direction:column;font-family:'Geist Mono',monospace}
+  .tb-num .v{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.02em;font-feature-settings:'tnum';line-height:1}
+  .tb-num .l{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+
+  /* ===== SOURCE HEALTH CARDS ===== */
+  .sources-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:24px 0 12px;
+  }
+  .sources-head h2{
+    margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+  }
+  .sources-head .last-sync{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  .sources-grid{
+    display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:24px;
+  }
+  @media (min-width:640px){.sources-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (min-width:1024px){.sources-grid{grid-template-columns:repeat(4,1fr)}}
+
+  .src-card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;
+    transition:border-color .15s, transform .15s;cursor:pointer;
+  }
+  .src-card:hover{border-color:var(--ink-4);transform:translateY(-1px)}
+  .src-head{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2)}
+  .src-mark{
+    width:32px;height:32px;border-radius:8px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:13px;color:#fff;letter-spacing:-.02em;
+  }
+  .src-mark.fortify{background:#cc0000}
+  .src-mark.sonatype{background:#1c7ed6}
+  .src-mark.jira{background:#0052cc}
+  .src-mark.gitlab{background:#fc6d26}
+  .src-info{flex:1;min-width:0}
+  .src-info .name{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .src-info .host{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .src-status{
+    font-size:10px;padding:3px 7px;border-radius:5px;font-weight:600;
+    font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .src-status::before{content:'';width:6px;height:6px;border-radius:50%}
+  .src-status.ok{background:var(--green-soft);color:var(--green)}
+  .src-status.ok::before{background:var(--green);animation:pulse 2s infinite}
+  .src-status.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .src-status.warn::before{background:var(--yellow)}
+
+  .src-stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:0;
+  }
+  .src-stat{
+    padding:12px 14px;border-right:1px solid var(--line-2);
+    border-bottom:1px solid var(--line-2);
+  }
+  .src-stat:nth-child(2){border-right:none}
+  .src-stat:nth-child(3),.src-stat:nth-child(4){border-bottom:none}
+  .src-stat:nth-child(4){border-right:none}
+  .src-stat .v{
+    font-size:18px;font-weight:600;letter-spacing:-.02em;line-height:1;
+    font-feature-settings:'tnum';color:var(--ink);
+  }
+  .src-stat .v.crit{color:var(--red)}
+  .src-stat .v.warn{color:var(--yellow)}
+  .src-stat .l{
+    font-size:10px;color:var(--ink-3);text-transform:uppercase;
+    letter-spacing:.05em;margin-top:5px;font-weight:500;
+    font-family:'Geist Mono',monospace;
+  }
+
+  .src-foot{
+    padding:10px 14px;background:var(--surface-2);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+  }
+  .src-foot .ago{display:flex;align-items:center;gap:5px}
+  .src-foot .ago svg{width:11px;height:11px}
+  .src-foot button{
+    color:var(--ink);font-weight:600;font-size:11px;
+    display:flex;align-items:center;gap:3px;
+  }
+  .src-foot button svg{width:11px;height:11px}
+
+  /* ===== READINESS BLOCKERS (warning row) ===== */
+  .blockers-row{
+    background:var(--yellow-soft);border-radius:var(--radius);padding:10px 14px;
+    margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;font-size:12px;
+  }
+  .blockers-row svg{width:14px;height:14px;color:var(--yellow);flex-shrink:0;margin-top:1px}
+  .blockers-row b{color:var(--ink);font-weight:600}
+  .blockers-row code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px;font-family:'Geist Mono',monospace;font-size:11px}
+  [data-theme="dark"] .blockers-row code{background:rgba(255,255,255,.08)}
+  .blockers-row .resolve{margin-left:auto;font-weight:600;color:var(--ink);text-decoration:underline;flex-shrink:0;font-size:12px;cursor:pointer}
+
+  /* ===== FINDINGS LIST ===== */
+  .findings-card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;
+  }
+  .findings-head{
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;flex-wrap:wrap;
+  }
+  .findings-head h3{margin:0;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .findings-head .actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+  /* Sort & filter pills */
+  .filter-row{
+    padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);
+    display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    align-items:center;
+  }
+  .filter-row::-webkit-scrollbar{display:none}
+  .filter-row .label{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.05em;font-weight:600;flex-shrink:0;margin-right:4px}
+  .chip{
+    padding:4px 10px;border:1px solid var(--line);border-radius:20px;
+    background:var(--surface);font-size:11px;color:var(--ink-2);font-weight:500;
+    display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;
+  }
+  .chip:hover{background:var(--surface-3)}
+  .chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .chip .ct{font-size:10px;padding:1px 5px;border-radius:8px;background:var(--surface-2);color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .chip.active .ct{background:rgba(255,255,255,.15);color:var(--bg)}
+
+  /* Finding row */
+  .finding{
+    display:grid;grid-template-columns:auto 1fr auto;gap:12px;
+    padding:14px 16px;border-bottom:1px solid var(--line-2);
+    align-items:flex-start;cursor:pointer;transition:background .15s;
+  }
+  .finding:last-child{border:none}
+  .finding:hover{background:var(--surface-2)}
+
+  .finding-check{
+    width:22px;height:22px;border:1.5px solid var(--ink-4);border-radius:6px;
+    flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;
+    background:var(--surface);transition:all .15s;
+  }
+  .finding-check.checked{background:var(--ink);border-color:var(--ink)}
+  .finding-check.checked::before{content:'';width:11px;height:11px;background:var(--bg);clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,86% 0,50% 70%)}
+
+  .finding-body{flex:1;min-width:0}
+  .finding-title{font-weight:500;font-size:14px;margin-bottom:4px;line-height:1.4;letter-spacing:-.005em;color:var(--ink)}
+  .finding-meta-row{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-bottom:8px;
+  }
+  .finding-meta-row .src-tag{
+    display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:3px;
+    background:var(--surface-2);color:var(--ink-2);font-weight:500;font-size:10px;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .finding-meta-row .src-tag::before{content:'';width:5px;height:5px;border-radius:50%}
+  .finding-meta-row .src-tag.fortify::before{background:#cc0000}
+  .finding-meta-row .src-tag.sonatype::before{background:#1c7ed6}
+  .finding-meta-row .src-tag.jira::before{background:#0052cc}
+  .finding-meta-row .src-tag.gitlab::before{background:#fc6d26}
+
+  .finding-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+
+  /* Severity */
+  .sev{
+    font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;
+    font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:4px;
+  }
+  .sev::before{content:'';width:5px;height:5px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .sev-high{background:var(--orange-soft);color:var(--orange)} .sev-high::before{background:var(--orange)}
+  .sev-med{background:var(--yellow-soft);color:var(--yellow)} .sev-med::before{background:var(--yellow)}
+  .sev-low{background:var(--blue-soft);color:var(--blue)} .sev-low::before{background:var(--blue)}
+
+  /* Effort */
+  .effort{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:500;font-family:'Geist Mono',monospace}
+  .effort-easy{background:var(--green-soft);color:var(--green)}
+  .effort-medium{background:var(--yellow-soft);color:var(--yellow)}
+  .effort-hard{background:var(--orange-soft);color:var(--orange)}
+  .effort-complex{background:var(--red-soft);color:var(--red)}
+
+  /* Verdict */
+  .verdict{
+    display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;
+    font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+    font-family:'Geist Mono',monospace;
+  }
+  .verdict::before{content:'';width:5px;height:5px;border-radius:50%}
+  .verdict-can{background:var(--green-soft);color:var(--green)} .verdict-can::before{background:var(--green)}
+  .verdict-review{background:var(--blue-soft);color:var(--blue)} .verdict-review::before{background:var(--blue)}
+  .verdict-cant{background:var(--red-soft);color:var(--red)} .verdict-cant::before{background:var(--red)}
+  .verdict-defer{background:var(--orange-soft);color:var(--orange)} .verdict-defer::before{background:var(--orange)}
+
+  /* Triage commentary inline (for too-complex) */
+  .triage-note{
+    background:var(--surface-2);border-left:2px solid var(--orange);
+    border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink-2);
+    line-height:1.55;margin-top:4px;display:flex;align-items:flex-start;gap:8px;
+  }
+  .triage-note .av-mini{
+    width:18px;height:18px;border-radius:5px;flex-shrink:0;
+    background:var(--ink);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-size:8px;font-weight:700;letter-spacing:-.02em;
+  }
+  .triage-note .av-mini::before{content:'TRG'}
+  .triage-note .nt-text{flex:1}
+  .triage-note .nt-text b{font-weight:600;color:var(--ink)}
+  .triage-note code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px}
+
+  /* Finding right side: agent recommendation */
+  .finding-right{
+    display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;
+  }
+  @media (max-width:640px){
+    .finding{grid-template-columns:auto 1fr}
+    .finding-right{display:none}
+  }
+
+  .finding-eta{
+    font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+    display:flex;align-items:center;gap:4px;
+  }
+  .finding-eta svg{width:11px;height:11px}
+  .agent-pick{
+    font-size:10px;padding:3px 8px;border-radius:5px;
+    background:var(--purple-soft);color:var(--purple);font-weight:600;
+    font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .agent-pick.recommend::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--purple)}
+
+  /* Variant: too-complex highlight */
+  .finding.too-complex{background:linear-gradient(to right,var(--orange-soft) 0%,var(--surface) 8%)}
+  .finding.too-complex:hover{background:linear-gradient(to right,var(--orange-soft) 0%,var(--surface-2) 8%)}
+
+  /* ===== STICKY SELECTION BAR ===== */
+  .selection-bar{
+    position:fixed;bottom:calc(78px + var(--safe-bottom));left:16px;right:16px;
+    background:var(--ink);color:var(--bg);border-radius:var(--radius-lg);
+    padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    box-shadow:0 12px 32px rgba(12,10,9,.18);z-index:25;
+    max-width:1148px;margin:0 auto;
+  }
+  @media (min-width:1024px){.selection-bar{bottom:24px;left:50%;transform:translateX(-50%);right:auto;width:calc(100% - 56px);max-width:1124px}}
+  .selection-bar .pill-count{
+    background:var(--bg);color:var(--ink);padding:4px 10px;border-radius:6px;
+    font-weight:600;font-size:13px;font-family:'Geist Mono',monospace;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .selection-bar .meta{color:rgba(250,250,249,.65);font-size:12px;flex:1;min-width:140px;line-height:1.4}
+  .selection-bar .meta b{color:var(--bg);font-weight:600}
+  .selection-bar .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .selection-bar .actions button{
+    padding:9px 14px;border-radius:8px;font-weight:600;font-size:13px;min-height:38px;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .selection-bar .actions .primary{background:var(--bg);color:var(--ink)}
+  .selection-bar .actions .primary:hover{opacity:.9}
+  .selection-bar .actions .ghost{background:transparent;color:var(--bg);border:1px solid rgba(255,255,255,.15)}
+  .selection-bar .actions .ghost:hover{background:rgba(255,255,255,.06)}
+  .selection-bar .actions button svg{width:14px;height:14px}
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-bottom))}
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;border-radius:8px;min-height:var(--tap);position:relative}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+  <nav class="top-nav">
+    <button class="top-tab">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab active">Intake <span class="count">14</span></button>
+    <button class="top-tab">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+  <div class="top-right">
+    <div class="agent-pill"><span class="pulse-dot"></span><span class="label">Agent working</span></div>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn" onclick="toggleTheme()"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>intake</span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-h">
+    <div>
+      <h1>Security Intake</h1>
+      <p class="lede">Findings from all sources · agent triaged each one · pick what becomes sprint work</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Re-sync sources
+      </button>
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export queue
+      </button>
+    </div>
+  </div>
+
+  <!-- WORKFLOW STRIP -->
+  <div class="workflow" role="list" aria-label="Workflow progress">
+    <div class="wf-step done" role="listitem"><div class="num">1</div><div class="lbl">Scan</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step done" role="listitem"><div class="num">2</div><div class="lbl">Triage</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step now" role="listitem" aria-current="step"><div class="num">3</div><div class="lbl">You pick</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step" role="listitem"><div class="num">4</div><div class="lbl">Sprint</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step" role="listitem"><div class="num">5</div><div class="lbl">Fixing</div></div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step" role="listitem"><div class="num">6</div><div class="lbl">Verified</div></div>
+  </div>
+
+  <!-- TRIAGE AGENT BANNER -->
+  <div class="triage-banner">
+    <div class="tb-av"></div>
+    <div class="tb-body">
+      <div class="tb-head">
+        <span class="name">Triage Agent</span>
+        <span class="role">analysis · sprint 8 candidates</span>
+        <span class="time">4m ago</span>
+      </div>
+      <p>
+        Of <b>21 new findings</b> from last night's ingest, I can fix <b>14 alone</b>, <b>3 need your review</b>, and <b>4 are too complex</b> for a security-only fix.
+        Recommend <b>14 issues for Sprint 8</b> (~<b>42h agent work</b>) — fits your historical capacity. The 4 too-complex items should become engineering tickets.
+      </p>
+      <div class="tb-numbers">
+        <div class="tb-num"><span class="v">21</span><span class="l">New findings</span></div>
+        <div class="tb-num"><span class="v" style="color:var(--green)">14</span><span class="l">Can fix</span></div>
+        <div class="tb-num"><span class="v" style="color:var(--blue)">3</span><span class="l">Needs review</span></div>
+        <div class="tb-num"><span class="v" style="color:var(--orange)">4</span><span class="l">Too complex</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOURCE HEALTH CARDS -->
+  <div class="sources-head">
+    <h2>Source health</h2>
+    <span class="last-sync">Last full sync: 4 minutes ago</span>
+  </div>
+
+  <div class="sources-grid">
+
+    <!-- FORTIFY -->
+    <div class="src-card">
+      <div class="src-head">
+        <div class="src-mark fortify">F</div>
+        <div class="src-info">
+          <div class="name">Fortify SSC</div>
+          <div class="host">fortify.company.com</div>
+        </div>
+        <span class="src-status ok">Healthy</span>
+      </div>
+      <div class="src-stats">
+        <div class="src-stat"><div class="v">14</div><div class="l">New findings</div></div>
+        <div class="src-stat"><div class="v crit">3</div><div class="l">Critical</div></div>
+        <div class="src-stat"><div class="v">47</div><div class="l">Open total</div></div>
+        <div class="src-stat"><div class="v">11/14</div><div class="l">Has playbook</div></div>
+      </div>
+      <div class="src-foot">
+        <span class="ago"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> synced 8h ago</span>
+        <button>5 projects <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- SONATYPE -->
+    <div class="src-card">
+      <div class="src-head">
+        <div class="src-mark sonatype">S</div>
+        <div class="src-info">
+          <div class="name">Sonatype (SCA)</div>
+          <div class="host">nexus.company.com</div>
+        </div>
+        <span class="src-status ok">Healthy</span>
+      </div>
+      <div class="src-stats">
+        <div class="src-stat"><div class="v">5</div><div class="l">New CVEs</div></div>
+        <div class="src-stat"><div class="v crit">2</div><div class="l">Critical</div></div>
+        <div class="src-stat"><div class="v">17</div><div class="l">Open total</div></div>
+        <div class="src-stat"><div class="v">100%</div><div class="l">Source mapped</div></div>
+      </div>
+      <div class="src-foot">
+        <span class="ago"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> synced 1h ago</span>
+        <button>8 repos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- JIRA -->
+    <div class="src-card">
+      <div class="src-head">
+        <div class="src-mark jira">J</div>
+        <div class="src-info">
+          <div class="name">Jira</div>
+          <div class="host">company.atlassian.net</div>
+        </div>
+        <span class="src-status warn">Issues</span>
+      </div>
+      <div class="src-stats">
+        <div class="src-stat"><div class="v">3</div><div class="l">New tickets</div></div>
+        <div class="src-stat"><div class="v warn">1</div><div class="l">Reopened</div></div>
+        <div class="src-stat"><div class="v">12</div><div class="l">Open total</div></div>
+        <div class="src-stat"><div class="v warn">98%</div><div class="l">Owner mapped</div></div>
+      </div>
+      <div class="src-foot">
+        <span class="ago"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> synced 4m ago</span>
+        <button>project SEC <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+    <!-- GITLAB -->
+    <div class="src-card">
+      <div class="src-head">
+        <div class="src-mark gitlab">G</div>
+        <div class="src-info">
+          <div class="name">GitLab</div>
+          <div class="host">gitlab.company.com</div>
+        </div>
+        <span class="src-status ok">Healthy</span>
+      </div>
+      <div class="src-stats">
+        <div class="src-stat"><div class="v">2</div><div class="l">New findings</div></div>
+        <div class="src-stat"><div class="v">0</div><div class="l">Critical</div></div>
+        <div class="src-stat"><div class="v">8</div><div class="l">Open total</div></div>
+        <div class="src-stat"><div class="v">100%</div><div class="l">Owner mapped</div></div>
+      </div>
+      <div class="src-foot">
+        <span class="ago"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> synced 12m ago</span>
+        <button>47 repos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- READINESS BLOCKER -->
+  <div class="blockers-row">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div>
+      <b>1 readiness blocker</b> · Jira ticket <code>SEC-1753</code> is missing CWE classification — agent will skip until classified.
+    </div>
+    <button class="resolve">Resolve →</button>
+  </div>
+
+  <!-- FINDINGS LIST -->
+  <div class="findings-card">
+    <div class="findings-head">
+      <h3>Findings awaiting selection</h3>
+      <div class="actions">
+        <button class="btn sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Select agent picks
+        </button>
+        <button class="btn sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Sort
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="filter-row">
+      <span class="label">Filter:</span>
+      <button class="chip active">All <span class="ct">21</span></button>
+      <button class="chip">Critical <span class="ct">5</span></button>
+      <button class="chip">Can fix <span class="ct">14</span></button>
+      <button class="chip">Needs review <span class="ct">3</span></button>
+      <button class="chip">Too complex <span class="ct">4</span></button>
+      <button class="chip">Fortify <span class="ct">14</span></button>
+      <button class="chip">Sonatype <span class="ct">5</span></button>
+      <button class="chip">GitLab <span class="ct">2</span></button>
+    </div>
+
+    <!-- FINDING ROWS -->
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">SQL injection in OrderRepository.findByCustomer</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5201</code>
+          <span>·</span>
+          <span>order-service</span>
+          <span>·</span>
+          <code>CWE-89</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-crit">Critical</span>
+          <span class="effort effort-easy">Easy · 2h</span>
+          <span class="verdict verdict-can">Can fix</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~2h</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">Hardcoded secret in NotificationConfig.smtpPassword</div>
+        <div class="finding-meta-row">
+          <span class="src-tag gitlab">GitLab</span>
+          <code>GL-SEC-2841</code>
+          <span>·</span>
+          <span>notification-service</span>
+          <span>·</span>
+          <code>CWE-798</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-high">High</span>
+          <span class="effort effort-easy">Easy · 1h</span>
+          <span class="verdict verdict-can">Can fix</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~1h</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">Critical CVE in spring-core 5.3.18 — upgrade to 5.3.27</div>
+        <div class="finding-meta-row">
+          <span class="src-tag sonatype">Sonatype</span>
+          <code>CVE-2023-20861</code>
+          <span>·</span>
+          <span>order-service</span>
+          <span>·</span>
+          <span>CVSS 7.5</span>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-crit">Critical</span>
+          <span class="effort effort-easy">Easy · 1h</span>
+          <span class="verdict verdict-can">Can fix</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~1h</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">Weak MD5 hash in legacy auth token generator</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5198</code>
+          <span>·</span>
+          <span>auth-service</span>
+          <span>·</span>
+          <code>CWE-327</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-high">High</span>
+          <span class="effort effort-medium">Med · 4h</span>
+          <span class="verdict verdict-can">Can fix</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~4h</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">Missing CSRF token on /api/admin/* endpoints</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5194</code>
+          <span>·</span>
+          <span>admin-portal</span>
+          <span>·</span>
+          <code>CWE-352</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-med">Med</span>
+          <span class="effort effort-easy">Easy · 2h</span>
+          <span class="verdict verdict-can">Can fix</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~2h</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check checked"></div>
+      <div class="finding-body">
+        <div class="finding-title">Insecure deserialization in SOAP message handler</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5196</code>
+          <span>·</span>
+          <span>integration-service</span>
+          <span>·</span>
+          <code>CWE-502</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-crit">Critical</span>
+          <span class="effort effort-hard">Hard · 8h</span>
+          <span class="verdict verdict-review">Needs review</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick recommend">Agent recommends</span>
+        <span class="finding-eta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~8h</span>
+      </div>
+    </article>
+
+    <!-- TOO COMPLEX -->
+    <article class="finding too-complex" onclick="toggleCheck(this)">
+      <div class="finding-check"></div>
+      <div class="finding-body">
+        <div class="finding-title">XSS in legacy JSP report viewer (14 input fields, 6 JSPs)</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5193</code>
+          <span>·</span>
+          <span>admin-portal</span>
+          <span>·</span>
+          <code>CWE-79</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-high">High</span>
+          <span class="effort effort-complex">Too complex</span>
+          <span class="verdict verdict-cant">Can't fix</span>
+        </div>
+        <div class="triage-note">
+          <div class="av-mini"></div>
+          <div class="nt-text">
+            <b>Triage says:</b> JSPs are being phased out company-wide. Same XSS pattern exists in 6 JSPs across <code>admin-portal</code>. Output-encoding all 14 fields is symptom-only and recurs on every edit. Recommend converting to <b>engineering epic: migrate to Thymeleaf</b>.
+          </div>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick" style="background:var(--orange-soft);color:var(--orange)">→ Engineering epic</span>
+      </div>
+    </article>
+
+    <article class="finding too-complex" onclick="toggleCheck(this)">
+      <div class="finding-check"></div>
+      <div class="finding-body">
+        <div class="finding-title">Session fixation across 4 controllers (UserAuth, AdminAuth, ApiKey, Sso)</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5187</code>
+          <span>·</span>
+          <span>user-service</span>
+          <span>·</span>
+          <code>CWE-384</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-crit">Critical</span>
+          <span class="effort effort-complex">Too complex</span>
+          <span class="verdict verdict-cant">Can't fix</span>
+        </div>
+        <div class="triage-note">
+          <div class="av-mini"></div>
+          <div class="nt-text">
+            <b>Triage says:</b> Touches session-management architecture across 4 entry points. Each has different identity sources. Fix requires <b>design review</b> with the platform team — patching each in isolation risks breaking SSO.
+          </div>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick" style="background:var(--orange-soft);color:var(--orange)">→ Design review</span>
+      </div>
+    </article>
+
+    <article class="finding too-complex" onclick="toggleCheck(this)">
+      <div class="finding-check"></div>
+      <div class="finding-body">
+        <div class="finding-title">Path traversal — 8 file-upload handlers in reporting-service</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5184</code>
+          <span>·</span>
+          <span>reporting-service</span>
+          <span>·</span>
+          <code>CWE-22</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-high">High</span>
+          <span class="effort effort-complex">Too complex</span>
+          <span class="verdict verdict-cant">Can't fix</span>
+        </div>
+        <div class="triage-note">
+          <div class="av-mini"></div>
+          <div class="nt-text">
+            <b>Triage says:</b> Same vulnerability pattern in 8+ handlers — endemic in this service. Per your policy (max 5 same-pattern files), this becomes a <b>refactor epic</b>: introduce a shared <code>SafeFileResolver</code> utility instead of patching each handler.
+          </div>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick" style="background:var(--orange-soft);color:var(--orange)">→ Refactor epic</span>
+      </div>
+    </article>
+
+    <article class="finding" onclick="toggleCheck(this)">
+      <div class="finding-check"></div>
+      <div class="finding-body">
+        <div class="finding-title">XML external entity in legacy SOAP endpoint</div>
+        <div class="finding-meta-row">
+          <span class="src-tag fortify">Fortify</span>
+          <code>FOR-5183</code>
+          <span>·</span>
+          <span>integration-service</span>
+          <span>·</span>
+          <code>CWE-611</code>
+        </div>
+        <div class="finding-tags">
+          <span class="sev sev-med">Med</span>
+          <span class="effort effort-medium">Med · 4h</span>
+          <span class="verdict verdict-defer">No playbook yet</span>
+        </div>
+      </div>
+      <div class="finding-right">
+        <span class="agent-pick" style="background:var(--surface-2);color:var(--ink-3)">Defer · draft playbook</span>
+      </div>
+    </article>
+
+  </div>
+
+</main>
+
+<!-- STICKY SELECTION BAR -->
+<div class="selection-bar">
+  <div class="pill-count">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+    6 selected
+  </div>
+  <div class="meta"><b>~18h agent work</b> · 3 too-complex items will become <b>engineering tickets</b> · fits Sprint 8 capacity (<b>40h</b>)</div>
+  <div class="actions">
+    <button class="ghost">Clear</button>
+    <button class="primary">
+      Route to Sprint 8
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  function toggleCheck(row){
+    const cb = row.querySelector('.finding-check');
+    cb.classList.toggle('checked');
+    // Update count would normally happen here
+  }
+
+  // Filter chips
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Remediation · SecOps Workbench</title>
+<meta name="description" content="Remediation shell — top bar, URL bar, 7-segment stage and contextual tab strip every tab inherits."/>
+<meta name="secops:screen-id" content="01"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Remediation · SecOps Workbench"/>
+<meta property="og:description" content="Remediation shell — top bar, URL bar, 7-segment stage and contextual tab strip every tab inherits."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:'cv11','ss01','ss03';
+    padding-bottom:calc(72px + var(--safe-bottom));
+  }
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* ========= TOP BAR ========= */
+  .top{
+    background:var(--surface);border-bottom:1px solid var(--line);
+    padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));
+    display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;
+  }
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  /* ========= URL BAR ========= */
+  .url-bar{
+    background:var(--surface-2);border-bottom:1px solid var(--line);
+    padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);
+    display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap;
+  }
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  /* ========= MAIN ========= */
+  .main{max-width:1180px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  /* ========= PAGE HEADER ========= */
+  .page-header{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    gap:16px;margin-bottom:16px;flex-wrap:wrap;
+  }
+  .page-header .ids{
+    font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-3);
+    margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  }
+  .page-header .ids code{background:var(--surface-2);padding:2px 7px;border-radius:4px;color:var(--ink-2)}
+  h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:-.02em;line-height:1.25}
+  @media (min-width:640px){h1{font-size:26px}}
+  .header-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+  /* Severity pills */
+  .sev{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+  .sev::before{content:'';width:5px;height:5px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .sev-high{background:var(--orange-soft);color:var(--orange)} .sev-high::before{background:var(--orange)}
+  .sev-med{background:var(--yellow-soft);color:var(--yellow)} .sev-med::before{background:var(--yellow)}
+  .sev-low{background:var(--blue-soft);color:var(--blue)} .sev-low::before{background:var(--blue)}
+
+  .stage-tag{
+    font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;
+    font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-2);
+  }
+
+  .page-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{
+    padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .btn:hover{background:var(--surface-2)}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  /* ========= STAGE BAR ========= */
+  .stage-bar{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px;
+  }
+  .stage-bar-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;gap:12px;flex-wrap:wrap;
+  }
+  .stage-bar-head .now-label{
+    font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+  }
+  .stage-bar-head .now-value{
+    font-size:15px;font-weight:600;margin-top:3px;letter-spacing:-.01em;
+  }
+  .stage-progress{
+    font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+  }
+  .stage-track{display:flex;gap:4px}
+  .stage-pill{
+    flex:1;height:6px;background:var(--surface-2);border-radius:3px;
+    position:relative;cursor:pointer;transition:opacity .15s;
+  }
+  .stage-pill:hover{opacity:.7}
+  .stage-pill.done{background:var(--ink)}
+  .stage-pill.now{background:linear-gradient(90deg,var(--ink) 60%,var(--surface-2) 60%)}
+  .stage-pill.now::after{
+    content:'';position:absolute;top:-3px;bottom:-3px;left:55%;width:2px;
+    background:var(--ink);border-radius:1px;animation:caret 1.6s ease-in-out infinite;
+  }
+  @keyframes caret{0%,100%{opacity:1}50%{opacity:.3}}
+  .stage-pill-labels{display:flex;gap:4px;margin-top:8px}
+  .stage-pill-labels span{flex:1;font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+  .stage-pill-labels span.now{color:var(--ink);font-weight:600}
+  .stage-pill-labels span.done{color:var(--ink-2)}
+
+  /* ========= CTX TABS ========= */
+  .ctx-tabs{
+    display:flex;gap:2px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:10px;padding:4px;
+    margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  .ctx-tabs::-webkit-scrollbar{display:none}
+  .ctx-tab{
+    padding:9px 14px;border-radius:7px;font-size:13px;color:var(--ink-3);
+    font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px;
+  }
+  .ctx-tab:hover{color:var(--ink)}
+  .ctx-tab.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(12,10,9,.05)}
+  .ctx-tab .badge{
+    font-size:10px;padding:1px 6px;border-radius:8px;
+    background:var(--surface-3);color:var(--ink-3);
+    font-family:'Geist Mono',monospace;font-weight:600;
+  }
+  .ctx-tab.active .badge{background:var(--ink);color:var(--bg)}
+  .ctx-tab .badge.alert{background:var(--red);color:#fff}
+
+  /* ========= PLACEHOLDER ========= */
+  .placeholder{
+    border:1px dashed var(--line);border-radius:var(--radius-lg);
+    padding:64px 24px;text-align:center;color:var(--ink-3);
+    background:var(--surface);
+  }
+  .placeholder svg{width:32px;height:32px;color:var(--ink-4);margin-bottom:12px}
+  .placeholder h3{margin:0 0 6px;font-size:15px;font-weight:600;color:var(--ink-2);letter-spacing:-.01em}
+  .placeholder p{margin:0;font-size:13px;line-height:1.5;max-width:380px;margin:0 auto}
+  .placeholder code{background:var(--surface-2);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--ink-2)}
+
+  /* ========= BOTTOM NAV ========= */
+  .bottom-nav{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    background:var(--surface);border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;
+    padding:6px 8px calc(6px + var(--safe-bottom));
+  }
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{
+    flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;
+    align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;
+    border-radius:8px;min-height:var(--tap);position:relative;
+  }
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{
+    position:absolute;top:4px;right:calc(50% - 18px);
+    background:var(--red);color:#fff;font-size:9px;font-weight:700;
+    padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;
+    min-width:16px;text-align:center;line-height:1.4;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn" aria-label="Open menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-mark">SO</div>
+    <div class="brand-text">
+      <span>SecOps Workbench</span>
+      <small>Sprint 7 · Day 8/10</small>
+    </div>
+  </div>
+
+  <nav class="top-nav">
+    <button class="top-tab active">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab">Intake <span class="count">14</span></button>
+    <button class="top-tab">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+
+  <div class="top-right">
+    <div class="agent-pill">
+      <span class="pulse-dot"></span>
+      <span class="label">Agent working</span>
+    </div>
+    <button class="icon-btn" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </button>
+    <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="Tools">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>remediation<span class="url-prim">&issue=</span>issue-sec-1745<span class="url-prim">&tab=</span><span id="url-tab">overview</span></span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="ids">
+        <code>SEC-1745</code>
+        <span>·</span>
+        <code>FOR-5183</code>
+        <span>·</span>
+        <span>order-service</span>
+      </div>
+      <h1>SQL injection in OrderRepository.findByCustomer</h1>
+      <div class="header-meta">
+        <span class="sev sev-crit">Critical</span>
+        <span class="stage-tag">CWE-89</span>
+        <span class="stage-tag">spring-sql-injection@2.3</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Previous
+      </button>
+      <button class="btn sm">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STAGE BAR -->
+  <div class="stage-bar">
+    <div class="stage-bar-head">
+      <div>
+        <div class="now-label">Current stage</div>
+        <div class="now-value">Awaiting human approval</div>
+      </div>
+      <div class="stage-progress">5 of 7 · 71%</div>
+    </div>
+    <div class="stage-track">
+      <button class="stage-pill done" title="Triaged"></button>
+      <button class="stage-pill done" title="Planned"></button>
+      <button class="stage-pill done" title="Coded"></button>
+      <button class="stage-pill done" title="Tested"></button>
+      <button class="stage-pill now" title="Approval"></button>
+      <button class="stage-pill" title="Merge"></button>
+      <button class="stage-pill" title="Verified"></button>
+    </div>
+    <div class="stage-pill-labels">
+      <span class="done">Triaged</span>
+      <span class="done">Planned</span>
+      <span class="done">Coded</span>
+      <span class="done">Tested</span>
+      <span class="now">Approval</span>
+      <span>Merge</span>
+      <span>Verified</span>
+    </div>
+  </div>
+
+  <!-- CTX TABS -->
+  <div class="ctx-tabs" role="tablist">
+    <button class="ctx-tab active" data-ctx="overview" role="tab">Overview</button>
+    <button class="ctx-tab" data-ctx="evidence" role="tab">Evidence <span class="badge">12</span></button>
+    <button class="ctx-tab" data-ctx="gates" role="tab">Human Gates <span class="badge alert">1</span></button>
+    <button class="ctx-tab" data-ctx="regression" role="tab">Regression</button>
+    <button class="ctx-tab" data-ctx="verdict" role="tab">Verdict</button>
+  </div>
+
+  <!-- PLACEHOLDER for active tab -->
+  <div class="placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+    <h3 id="placeholder-title">Overview tab</h3>
+    <p>This is the Remediation page shell only. The <code id="placeholder-tab">Overview</code> tab content will be designed next when you say go.</p>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  document.querySelectorAll('.ctx-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.ctx-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const label = t.textContent.trim().split(/\s/)[0];
+      document.getElementById('placeholder-title').textContent = label + (label.includes('Gates') ? '' : '') + ' tab';
+      document.getElementById('placeholder-tab').textContent = label;
+      document.getElementById('url-tab').textContent = t.dataset.ctx;
+    });
+  });
+</script>
+
+</body>
+</html>

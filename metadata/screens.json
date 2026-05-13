@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-05-13",
+  "narrative": {
+    "id": "SEC-1745",
+    "title": "Critical SQL injection in OrderRepository",
+    "entry": "07-intake.html",
+    "crux": "19-approval-modal.html",
+    "resolution": "21-toasts.html"
+  },
+  "clusters": {
+    "remediation-tabs": "Contextual tabs inside the Remediation shell.",
+    "pages": "Top-level navigable pages.",
+    "drawers": "Slide-in utility drawers on the right edge.",
+    "overlays": "Modal/spotlight overlays."
+  },
+  "screens": [
+    { "id": "01", "file": "01-remediation.html", "cluster": "remediation-tabs", "title": "Remediation shell",        "thread": "SEC-1745", "tags": ["shell", "tabs", "stage-bar"] },
+    { "id": "02", "file": "02-overview.html",   "cluster": "remediation-tabs", "title": "Overview tab",             "thread": "SEC-1745", "tags": ["next-action", "blockers", "acceptance-criteria"] },
+    { "id": "03", "file": "03-evidence.html",   "cluster": "remediation-tabs", "title": "Evidence tab",             "thread": "SEC-1745", "tags": ["artifacts", "scanner", "code", "tests", "policy", "reasoning"] },
+    { "id": "04", "file": "04-human-gates.html","cluster": "remediation-tabs", "title": "Human Gates tab",          "thread": "SEC-1745", "tags": ["gates", "approvers", "pre-check"] },
+    { "id": "05", "file": "05-regression.html", "cluster": "remediation-tabs", "title": "Regression tab",           "thread": "SEC-1745", "tags": ["delta", "matrix", "side-effects"] },
+    { "id": "06", "file": "06-verdict.html",    "cluster": "remediation-tabs", "title": "Verdict tab",              "thread": "SEC-1745", "tags": ["recommendation", "votes", "rollback"] },
+    { "id": "07", "file": "07-intake.html",     "cluster": "pages",            "title": "Intake",                                       "tags": ["triage", "findings"] },
+    { "id": "08", "file": "08-sprint.html",     "cluster": "pages",            "title": "Sprint",                  "thread": "SEC-1745", "tags": ["kanban", "velocity", "tokens"] },
+    { "id": "09", "file": "09-agentbook.html",  "cluster": "pages",            "title": "AgentBook",               "thread": "SEC-1745", "tags": ["timeline", "scrum-thread"] },
+    { "id": "10", "file": "10-integrations.html","cluster": "drawers",         "title": "Integrations",                                 "tags": ["fortify", "sonatype", "jira", "gitlab", "modal", "langsmith", "slack"] },
+    { "id": "11", "file": "11-agent-registry.html","cluster": "drawers",       "title": "Agent Registry",          "thread": "SEC-1745", "tags": ["agents", "permissions", "autonomy"], "policy": "secops-policy@v3.2" },
+    { "id": "12", "file": "12-ceremonies.html", "cluster": "drawers",          "title": "Ceremonies",                                   "tags": ["review", "retro", "agenda"] },
+    { "id": "13", "file": "13-retro-backlog.html","cluster": "drawers",        "title": "Retro improvement backlog",                    "tags": ["actions", "policy-proposals", "backup-approver"], "policy": "policy-proposals" },
+    { "id": "14", "file": "14-playbooks.html",  "cluster": "drawers",          "title": "Playbooks & Skills",      "thread": "SEC-1745", "tags": ["playbooks", "spring-sql-injection", "spring-csrf"] },
+    { "id": "15", "file": "15-metrics.html",    "cluster": "drawers",          "title": "Metrics",                                      "tags": ["mttr", "merge-rate", "token-budget", "velocity"], "policy": "policy-signals" },
+    { "id": "16", "file": "16-policy.html",     "cluster": "drawers",          "title": "Production policy",                            "tags": ["rules", "autonomy", "recovery", "audit", "release-gates", "history"], "policy": "secops-policy@v3.2" },
+    { "id": "17", "file": "17-pilot-replay.html","cluster": "drawers",         "title": "Pilot & Replay",                               "tags": ["what-if", "sandbox", "replay"], "policy": "secops-policy@v3.2" },
+    { "id": "18", "file": "18-settings.html",   "cluster": "drawers",          "title": "Settings",                                     "tags": ["preferences", "policy-locked-toggles"], "policy": "secops-policy@v3.2" },
+    { "id": "19", "file": "19-approval-modal.html","cluster": "overlays",      "title": "Approval modal",          "thread": "SEC-1745", "tags": ["modal", "critical", "diff-preview"], "policy": "secops-policy@v3.2" },
+    { "id": "20", "file": "20-search.html",     "cluster": "overlays",         "title": "Search overlay",          "thread": "SEC-1745", "tags": ["spotlight", "cmd-k"] },
+    { "id": "21", "file": "21-toasts.html",     "cluster": "overlays",         "title": "Toast notifications",     "thread": "SEC-1745", "tags": ["merge-confirm", "policy-promotion", "budget-warn", "auto-rollback"], "policy": "secops-policy@v3.3" }
+  ]
+}

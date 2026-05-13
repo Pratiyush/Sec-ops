@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Overview · Remediation · SecOps</title>
+<meta name="description" content="Overview tab — next-action banner, closure blockers and acceptance criteria for the current issue."/>
+<meta name="secops:screen-id" content="02"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Overview · Remediation · SecOps"/>
+<meta property="og:description" content="Overview tab — next-action banner, closure blockers and acceptance criteria for the current issue."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03';padding-bottom:calc(72px + var(--safe-bottom))}
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* TOP BAR */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  /* URL BAR */
+  .url-bar{background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap}
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  /* MAIN */
+  .main{max-width:1180px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  /* PAGE HEADER */
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .page-header .ids{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-3);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .page-header .ids code{background:var(--surface-2);padding:2px 7px;border-radius:4px;color:var(--ink-2)}
+  h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:-.02em;line-height:1.25}
+  @media (min-width:640px){h1{font-size:26px}}
+  .header-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .sev{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+  .sev::before{content:'';width:5px;height:5px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .stage-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-2)}
+  .page-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.9}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  /* STAGE BAR */
+  .stage-bar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px}
+  .stage-bar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+  .stage-bar-head .now-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace}
+  .stage-bar-head .now-value{font-size:15px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+  .stage-progress{font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .stage-track{display:flex;gap:4px}
+  .stage-pill{flex:1;height:6px;background:var(--surface-2);border-radius:3px;position:relative;cursor:pointer}
+  .stage-pill.done{background:var(--ink)}
+  .stage-pill.now{background:linear-gradient(90deg,var(--ink) 60%,var(--surface-2) 60%)}
+  .stage-pill-labels{display:flex;gap:4px;margin-top:8px}
+  .stage-pill-labels span{flex:1;font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+  .stage-pill-labels span.now{color:var(--ink);font-weight:600}
+  .stage-pill-labels span.done{color:var(--ink-2)}
+
+  /* CTX TABS */
+  .ctx-tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ctx-tabs::-webkit-scrollbar{display:none}
+  .ctx-tab{padding:9px 14px;border-radius:7px;font-size:13px;color:var(--ink-3);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .ctx-tab:hover{color:var(--ink)}
+  .ctx-tab.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(12,10,9,.05)}
+  .ctx-tab .badge{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--surface-3);color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .ctx-tab.active .badge{background:var(--ink);color:var(--bg)}
+  .ctx-tab .badge.alert{background:var(--red);color:#fff}
+
+  /* ===================== OVERVIEW LAYOUT ===================== */
+  .ov-layout{display:grid;grid-template-columns:1fr;gap:16px}
+  @media (min-width:1024px){.ov-layout{grid-template-columns:1fr 320px;align-items:start}}
+
+  /* ===================== NEXT ACTION BANNER ===================== */
+  .next-action{
+    background:var(--ink);color:var(--bg);border-radius:var(--radius-lg);
+    padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    margin-bottom:16px;position:relative;overflow:hidden;
+  }
+  .next-action::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green);
+  }
+  .next-action .na-icon{
+    width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.1);
+    color:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .next-action .na-icon svg{width:20px;height:20px}
+  .next-action .na-text{flex:1;min-width:200px}
+  .next-action .na-lbl{
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;
+    color:var(--ink-4);font-family:'Geist Mono',monospace;margin-bottom:4px;
+  }
+  .next-action .na-title{font-size:15px;font-weight:600;line-height:1.3;letter-spacing:-.01em;margin-bottom:3px}
+  .next-action .na-sub{font-size:12px;color:rgba(250,250,249,.7);line-height:1.4}
+  .next-action .na-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .next-action .na-actions button{
+    background:var(--bg);color:var(--ink);padding:10px 14px;
+    border-radius:8px;font-size:13px;font-weight:600;min-height:40px;
+  }
+  .next-action .na-actions button:hover{opacity:.9}
+  .next-action .na-actions button.ghost{
+    background:transparent;color:var(--bg);border:1px solid rgba(255,255,255,.2);
+  }
+  .next-action .na-actions button.ghost:hover{background:rgba(255,255,255,.08)}
+
+  /* ===================== PANEL ===================== */
+  .panel{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;
+  }
+  .panel-head{
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;flex-wrap:wrap;
+  }
+  .panel-head h3{margin:0;font-size:14px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .panel-head .sub{color:var(--ink-3);font-size:12px;font-family:'Geist Mono',monospace}
+  .panel-body{padding:18px}
+
+  /* ===================== SUMMARY ===================== */
+  .summary-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .effort{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:500;font-family:'Geist Mono',monospace}
+  .effort-easy{background:var(--green-soft);color:var(--green)}
+  .verdict{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace}
+  .verdict::before{content:'';width:5px;height:5px;border-radius:50%}
+  .verdict-can{background:var(--green-soft);color:var(--green)} .verdict-can::before{background:var(--green)}
+  .summary-text{margin:0;color:var(--ink-2);font-size:14px;line-height:1.6}
+  .summary-text code{background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--ink-2)}
+  .summary-text .reveal{
+    display:inline-block;margin-left:6px;color:var(--blue);
+    font-size:12px;font-weight:500;cursor:pointer;
+  }
+  .summary-text .reveal:hover{text-decoration:underline}
+
+  .agent-source{
+    margin-top:14px;padding:10px 12px;background:var(--surface-2);
+    border-radius:8px;font-size:12px;color:var(--ink-3);
+    display:flex;align-items:center;gap:8px;
+  }
+  .agent-source .agent-av{width:20px;height:20px;border-radius:5px;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:-.02em;flex-shrink:0}
+  .agent-source code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* ===================== BLOCKERS LIST ===================== */
+  .blockers-list{display:flex;flex-direction:column;gap:8px}
+  .blocker-row{
+    display:flex;align-items:flex-start;gap:12px;padding:12px 14px;
+    border-radius:10px;border:1px solid var(--line);
+    background:var(--surface);font-size:13px;line-height:1.5;
+    transition:background .15s;
+  }
+  .blocker-row.ok{background:var(--green-soft);border-color:transparent}
+  .blocker-row.warn{background:var(--yellow-soft);border-color:transparent}
+  .blocker-row.fail{background:var(--red-soft);border-color:transparent}
+  .blocker-icon{
+    width:24px;height:24px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .blocker-row.ok .blocker-icon{background:var(--green);color:#fff}
+  .blocker-row.warn .blocker-icon{background:var(--yellow);color:#fff}
+  .blocker-row.fail .blocker-icon{background:var(--red);color:#fff}
+  .blocker-icon svg{width:14px;height:14px}
+  .blocker-content{flex:1;min-width:0}
+  .blocker-content b{display:block;font-weight:600;margin-bottom:2px;font-size:13px;color:var(--ink)}
+  .blocker-content .b-meta{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .blocker-content .b-meta code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px;color:var(--ink-2)}
+  [data-theme="dark"] .blocker-content .b-meta code{background:rgba(255,255,255,.08)}
+  .blocker-time{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;white-space:nowrap;flex-shrink:0}
+
+  /* ===================== AC LIST ===================== */
+  .ac-list{display:flex;flex-direction:column;gap:0}
+  .ac-row{
+    display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+    border-bottom:1px solid var(--line-2);font-size:13px;line-height:1.5;
+  }
+  .ac-row:last-child{border:none;padding-bottom:0}
+  .ac-row:first-child{padding-top:0}
+  .ac-check{
+    width:20px;height:20px;border-radius:5px;border:1.5px solid var(--ink-4);
+    flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
+    background:var(--surface);
+  }
+  .ac-check.done{background:var(--green);border-color:var(--green);color:#fff}
+  .ac-check.done svg{width:12px;height:12px}
+  .ac-text{flex:1}
+  .ac-row.done .ac-text{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-4);text-decoration-thickness:1px}
+  .ac-text .ac-meta{
+    display:block;margin-top:3px;font-size:11px;color:var(--ink-3);
+    font-family:'Geist Mono',monospace;text-decoration:none;
+  }
+  .ac-meta code{background:var(--surface-2);padding:1px 5px;border-radius:3px;color:var(--ink-2)}
+
+  /* ===================== SIDE PANEL ===================== */
+  .side{display:flex;flex-direction:column;gap:14px;position:sticky;top:80px}
+  @media (max-width:1023px){.side{position:static}}
+  .side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px}
+  .side-card h4{margin:0 0 12px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace}
+  .side-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;gap:10px;align-items:center}
+  .side-row .k{color:var(--ink-3)}
+  .side-row .v{font-weight:500;text-align:right;display:flex;align-items:center;gap:6px}
+  .side-row .v code{background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--ink-2)}
+
+  .sla-bar{
+    margin-top:10px;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;
+  }
+  .sla-bar > div{height:100%;background:var(--green);width:73%;border-radius:2px}
+  .sla-text{font-size:11px;color:var(--ink-3);margin-top:6px;font-family:'Geist Mono',monospace;display:flex;justify-content:space-between}
+
+  /* Owner rows */
+  .owner-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+  .owner-row:last-child{border:none;padding-bottom:0}
+  .owner-row:first-child{padding-top:0}
+  .owner-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:-.02em}
+  .owner-av.bot{background:var(--purple)}
+  .owner-av.bot::before{content:'AI';font-size:10px}
+  .owner-av.human{background:var(--green)}
+  .owner-info{flex:1;min-width:0}
+  .owner-info .name{font-weight:500;font-size:13px;line-height:1.2}
+  .owner-info .role{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:'Geist Mono',monospace}
+  .owner-action{font-size:10px;padding:3px 7px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-family:'Geist Mono',monospace}
+  .owner-action.working{background:var(--blue-soft);color:var(--blue)}
+  .owner-action.pending{background:var(--yellow-soft);color:var(--yellow)}
+  .owner-action.done{background:var(--green-soft);color:var(--green)}
+
+  /* Linked panels */
+  .links-list{display:flex;flex-direction:column;gap:6px}
+  .link-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:12px;text-decoration:none;color:var(--ink-2);border:1px solid var(--line)}
+  .link-row:hover{background:var(--surface-2)}
+  .link-row svg{width:14px;height:14px;color:var(--ink-3);flex-shrink:0}
+  .link-row .ltxt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Geist Mono',monospace}
+  .link-row .ext{color:var(--ink-4)}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-bottom))}
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;border-radius:8px;min-height:var(--tap);position:relative}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="brand">
+    <div class="brand-mark">SO</div>
+    <div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div>
+  </div>
+  <nav class="top-nav">
+    <button class="top-tab active">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab">Intake <span class="count">14</span></button>
+    <button class="top-tab">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+  <div class="top-right">
+    <div class="agent-pill"><span class="pulse-dot"></span><span class="label">Agent working</span></div>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn" onclick="toggleTheme()"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>remediation<span class="url-prim">&issue=</span>issue-sec-1745<span class="url-prim">&tab=</span>overview</span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="ids">
+        <code>SEC-1745</code><span>·</span><code>FOR-5183</code><span>·</span><span>order-service</span>
+      </div>
+      <h1>SQL injection in OrderRepository.findByCustomer</h1>
+      <div class="header-meta">
+        <span class="sev sev-crit">Critical</span>
+        <span class="stage-tag">CWE-89</span>
+        <span class="stage-tag">spring-sql-injection@2.3</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Previous</button>
+      <button class="btn sm">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STAGE BAR -->
+  <div class="stage-bar">
+    <div class="stage-bar-head">
+      <div>
+        <div class="now-label">Current stage</div>
+        <div class="now-value">Awaiting human approval</div>
+      </div>
+      <div class="stage-progress">5 of 7 · 71%</div>
+    </div>
+    <div class="stage-track">
+      <button class="stage-pill done" title="Triaged"></button>
+      <button class="stage-pill done" title="Planned"></button>
+      <button class="stage-pill done" title="Coded"></button>
+      <button class="stage-pill done" title="Tested"></button>
+      <button class="stage-pill now" title="Approval"></button>
+      <button class="stage-pill" title="Merge"></button>
+      <button class="stage-pill" title="Verified"></button>
+    </div>
+    <div class="stage-pill-labels">
+      <span class="done">Triaged</span>
+      <span class="done">Planned</span>
+      <span class="done">Coded</span>
+      <span class="done">Tested</span>
+      <span class="now">Approval</span>
+      <span>Merge</span>
+      <span>Verified</span>
+    </div>
+  </div>
+
+  <!-- CTX TABS -->
+  <div class="ctx-tabs" role="tablist">
+    <button class="ctx-tab active" role="tab">Overview</button>
+    <button class="ctx-tab" role="tab">Evidence <span class="badge">12</span></button>
+    <button class="ctx-tab" role="tab">Human Gates <span class="badge alert">1</span></button>
+    <button class="ctx-tab" role="tab">Regression</button>
+    <button class="ctx-tab" role="tab">Verdict</button>
+  </div>
+
+  <!-- ============== OVERVIEW TAB CONTENT ============== -->
+  <div class="ov-layout">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- NEXT ACTION BANNER -->
+      <div class="next-action">
+        <div class="na-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="na-text">
+          <div class="na-lbl">Your next action</div>
+          <div class="na-title">Review the fix, then approve &amp; merge</div>
+          <div class="na-sub">All checks passing · reviewer agent + J. Reviewer have approved · final critical sign-off needed</div>
+        </div>
+        <div class="na-actions">
+          <button class="ghost">View change</button>
+          <button>Approve &amp; merge</button>
+        </div>
+      </div>
+
+      <!-- WHAT THIS IS -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>What this is</h3>
+          <span class="sub">summary by Triage Agent</span>
+        </div>
+        <div class="panel-body">
+          <div class="summary-meta">
+            <span class="sev sev-crit">Critical</span>
+            <span class="effort effort-easy">Easy · 2h</span>
+            <span class="verdict verdict-can">Agent can fix</span>
+          </div>
+          <p class="summary-text">
+            The <code>findByCustomer</code> method in <code>OrderRepository.java:87</code> builds its SQL by concatenating the user-supplied <code>customerId</code> directly into the query string. An attacker who controls that parameter can inject arbitrary SQL — including <code>UNION SELECT</code> attacks to read other customers' orders, or destructive statements like <code>DROP TABLE</code>.
+            <span class="reveal">Show technical detail →</span>
+          </p>
+
+          <div class="agent-source">
+            <div class="agent-av">AI</div>
+            <div>Triage Agent matched <code>CWE-89</code> · selected <code>spring-sql-injection@2.3</code> playbook · confidence 98% · 4m 12s ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOSURE BLOCKERS -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Closure blockers</h3>
+          <span class="sub">3 of 4 cleared</span>
+        </div>
+        <div class="panel-body">
+          <div class="blockers-list">
+
+            <div class="blocker-row ok">
+              <div class="blocker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="blocker-content">
+                <b>Code change applied</b>
+                <span class="b-meta">via <code>spring-sql-injection@2.3</code> · 18 lines changed in OrderRepository.java</span>
+              </div>
+              <span class="blocker-time">2h ago</span>
+            </div>
+
+            <div class="blocker-row ok">
+              <div class="blocker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="blocker-content">
+                <b>Tests pass</b>
+                <span class="b-meta">47 unit + 3 new regression tests · build green in CI</span>
+              </div>
+              <span class="blocker-time">1h ago</span>
+            </div>
+
+            <div class="blocker-row ok">
+              <div class="blocker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="blocker-content">
+                <b>Fortify rescan clean</b>
+                <span class="b-meta"><code>FOR-5183</code> marked Closed · no new findings introduced</span>
+              </div>
+              <span class="blocker-time">42m ago</span>
+            </div>
+
+            <div class="blocker-row warn">
+              <div class="blocker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="blocker-content">
+                <b>Awaiting human approval</b>
+                <span class="b-meta">critical severity requires sign-off from <code>@alice</code> before merge · SLA: 6 days left</span>
+              </div>
+              <span class="blocker-time">8m</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCEPTANCE CRITERIA -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Acceptance criteria</h3>
+          <span class="sub">from playbook</span>
+        </div>
+        <div class="panel-body">
+          <div class="ac-list">
+
+            <div class="ac-row done">
+              <div class="ac-check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="ac-text">
+                Query uses parameter binding (PreparedStatement / @Param), no string concatenation
+                <span class="ac-meta">verified in <code>OrderRepository.java:87</code></span>
+              </div>
+            </div>
+
+            <div class="ac-row done">
+              <div class="ac-check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="ac-text">
+                Regression test with malicious input passes
+                <span class="ac-meta">SqlInjectionRegressionTest · 3 cases · <code>' OR '1'='1</code>, <code>; DROP TABLE</code>, <code>UNION SELECT</code></span>
+              </div>
+            </div>
+
+            <div class="ac-row done">
+              <div class="ac-check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="ac-text">
+                Fortify rescan shows finding closed
+                <span class="ac-meta"><code>FOR-5183</code> Closed · scanned at 10:14</span>
+              </div>
+            </div>
+
+            <div class="ac-row done">
+              <div class="ac-check done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="ac-text">
+                Reviewer Agent approval
+                <span class="ac-meta">approved with no comments · 11m ago</span>
+              </div>
+            </div>
+
+            <div class="ac-row">
+              <div class="ac-check"></div>
+              <div class="ac-text">
+                Human security lead approval (required for critical severity)
+                <span class="ac-meta">pending · <code>@alice</code> notified in AgentBook</span>
+              </div>
+            </div>
+
+            <div class="ac-row">
+              <div class="ac-check"></div>
+              <div class="ac-text">
+                MR merged to main and deployed
+                <span class="ac-meta">will auto-deploy after merge via standard pipeline</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: side panels -->
+    <aside class="side">
+
+      <div class="side-card">
+        <h4>Details</h4>
+        <div class="side-row"><span class="k">Source</span><span class="v"><code>FOR-5183</code></span></div>
+        <div class="side-row"><span class="k">Severity</span><span class="v"><span class="sev sev-crit">Critical</span></span></div>
+        <div class="side-row"><span class="k">CWE</span><span class="v"><code>CWE-89</code></span></div>
+        <div class="side-row"><span class="k">Service</span><span class="v">order-service</span></div>
+        <div class="side-row"><span class="k">File</span><span class="v"><code>OrderRepository.java</code></span></div>
+        <div class="side-row"><span class="k">Branch</span><span class="v"><code>fix/SEC-1745</code></span></div>
+        <div class="side-row"><span class="k">MR</span><span class="v"><code>!8442</code></span></div>
+        <div class="side-row"><span class="k">Playbook</span><span class="v"><code>spring-sql-injection@2.3</code></span></div>
+        <div class="side-row"><span class="k">Tier</span><span class="v">T2 · auto-approved</span></div>
+
+        <div class="sla-bar"><div></div></div>
+        <div class="sla-text"><span>SLA: critical = 14 days</span><span style="color:var(--green)">6 days left</span></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Owners</h4>
+        <div class="owner-row">
+          <div class="owner-av bot"></div>
+          <div class="owner-info">
+            <div class="name">Developer Agent</div>
+            <div class="role">implemented · 2h ago</div>
+          </div>
+          <span class="owner-action done">Done</span>
+        </div>
+        <div class="owner-row">
+          <div class="owner-av bot"></div>
+          <div class="owner-info">
+            <div class="name">Reviewer Agent</div>
+            <div class="role">approved · 11m ago</div>
+          </div>
+          <span class="owner-action done">Done</span>
+        </div>
+        <div class="owner-row">
+          <div class="owner-av human">JR</div>
+          <div class="owner-info">
+            <div class="name">J. Reviewer</div>
+            <div class="role">on-call sec eng</div>
+          </div>
+          <span class="owner-action done">Approved</span>
+        </div>
+        <div class="owner-row">
+          <div class="owner-av human">AB</div>
+          <div class="owner-info">
+            <div class="name">Alice Brown</div>
+            <div class="role">security lead · you</div>
+          </div>
+          <span class="owner-action pending">Pending</span>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Linked</h4>
+        <div class="links-list">
+          <a class="link-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            <span class="ltxt">Fortify FOR-5183</span>
+            <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <a class="link-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span class="ltxt">GitLab MR !8442</span>
+            <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <a class="link-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="ltxt">spring-sql-injection.md</span>
+            <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <a class="link-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="ltxt">AgentBook thread</span>
+            <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secops.local/schema/ceremonies.schema.json",
+  "title": "Ceremonies manifest",
+  "type": "object",
+  "required": ["version", "sprint"],
+  "properties": {
+    "version": { "type": "string" },
+    "sprint":  { "type": "string" },
+    "upcoming": {
+      "type": "object",
+      "required": ["type", "date", "agenda"],
+      "properties": {
+        "type":    { "type": "string" },
+        "date":    { "type": "string", "format": "date" },
+        "weekday": { "type": "string" },
+        "agenda": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title"],
+            "properties": {
+              "id":      { "type": "string" },
+              "title":   { "type": "string" },
+              "owner":   { "type": "string" },
+              "minutes": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "past": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type":      { "type": "string" },
+          "sprint":    { "type": "string" },
+          "date":      { "type": "string", "format": "date" },
+          "decisions": { "type": "array", "items": { "type": "string" } },
+          "actions":   { "type": "array" }
+        }
+      }
+    }
+  }
+}

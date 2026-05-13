@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Pilot / Replay · SecOps Workbench</title>
+<meta name="description" content="Pilot & Replay — what-if sandbox. Sprint 6 replayed under v3.2 + backup-approver, 5 tickets re-routed."/>
+<meta name="secops:screen-id" content="17"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Pilot / Replay · SecOps Workbench"/>
+<meta property="og:description" content="Pilot & Replay — what-if sandbox. Sprint 6 replayed under v3.2 + backup-approver, 5 tickets re-routed."/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO with concept */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:flex-start;gap:14px}
+  .hero-orb{width:44px;height:44px;border-radius:12px;background:var(--purple-soft);color:var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .hero-orb svg{width:22px;height:22px;stroke-width:2.5}
+  .hero-t{flex:1;min-width:0}
+  .hero-t .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px}
+  .hero-t h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .hero-t .s{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+  .hero-t .s b{color:var(--ink-2);font-weight:600}
+  .hero-t .s code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:17px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .v.ok{color:var(--green)}
+  .st .v.warn{color:var(--yellow)}
+  .st .v.blue{color:var(--blue)}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* FILTERS */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchip .ct{font-family:'Geist Mono',monospace;font-size:10px;opacity:.7}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec .info{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;font-weight:500}
+
+  /* PILOT SETUP CARD */
+  .setup{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .picker{padding:11px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2)}
+  .picker:last-child{border:none}
+  .picker .pl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;width:64px;flex-shrink:0}
+  .picker .pv{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12.5px;font-weight:600;color:var(--ink)}
+  .picker .pv svg{width:13px;height:13px;color:var(--ink-3);margin-left:auto;flex-shrink:0}
+  .picker .pv code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--ink-2)}
+  .picker .pv .badge{font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;background:var(--blue-soft);color:var(--blue);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+
+  /* DIFF SUMMARY CARD */
+  .diff{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .diff-head{padding:11px 14px;background:var(--surface-2);display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2);font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .diff-head .lbl-a{color:var(--ink-2);display:flex;align-items:center;gap:5px}
+  .diff-head .lbl-a::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ink-4)}
+  .diff-head .arr{margin:0 6px;color:var(--ink-4)}
+  .diff-head .lbl-b{color:var(--purple);display:flex;align-items:center;gap:5px}
+  .diff-head .lbl-b::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--purple)}
+
+  .dr-row{padding:11px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line-2);font-size:12px}
+  .dr-row:last-child{border:none}
+  .dr-row .nm{flex:1;color:var(--ink-2);font-weight:500}
+  .dr-row .a{font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--ink-3);width:64px;text-align:right;font-feature-settings:'tnum'}
+  .dr-row .a small{font-size:10px;font-weight:500;color:var(--ink-4);margin-left:2px}
+  .dr-row .b{font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;width:64px;text-align:right;font-feature-settings:'tnum';color:var(--purple)}
+  .dr-row .b small{font-size:10px;font-weight:500;color:var(--ink-4);margin-left:2px}
+  .dr-row .b.better{color:var(--green)}
+  .dr-row .b.worse{color:var(--red)}
+  .dr-row .delta{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;width:60px;text-align:center;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;gap:2px}
+  .dr-row .delta.up{background:var(--green-soft);color:var(--green)}
+  .dr-row .delta.down{background:var(--red-soft);color:var(--red)}
+  .dr-row .delta.flat{background:var(--surface-2);color:var(--ink-3)}
+  .dr-row .delta svg{width:9px;height:9px}
+
+  /* ROUTING DIFF LIST */
+  .routes{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .rt{padding:11px 14px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--line-2)}
+  .rt:last-child{border:none}
+  .rt .icn{
+    width:24px;height:24px;border-radius:7px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .rt .icn svg{width:13px;height:13px}
+  .rt.up .icn{background:var(--green-soft);color:var(--green)}
+  .rt.down .icn{background:var(--red-soft);color:var(--red)}
+  .rt.side .icn{background:var(--blue-soft);color:var(--blue)}
+  .rt .body{flex:1;min-width:0}
+  .rt .tid{font-family:'Geist Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rt .tid .sev{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .rt .tid .sev.c{background:var(--red);color:#fff}
+  .rt .tid .sev.h{background:var(--orange);color:#fff}
+  .rt .tid .sev.m{background:var(--yellow);color:var(--ink)}
+  .rt .desc{font-size:11.5px;color:var(--ink-3);line-height:1.45;margin-top:4px}
+  .rt .desc b{color:var(--ink-2);font-weight:600}
+  .rt .change{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;flex-wrap:wrap}
+  .rt .change .from{padding:1px 6px;border-radius:4px;background:var(--surface-2);color:var(--ink-3)}
+  .rt .change .arr{color:var(--ink-4)}
+  .rt .change .to{padding:1px 6px;border-radius:4px;background:var(--purple-soft);color:var(--purple);font-weight:600}
+
+  /* ACTIVE PILOTS LIST */
+  .pl{margin:0 20px 8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:border-color .15s}
+  .pl:hover{border-color:var(--ink-4)}
+  .pl.run{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue-soft)}
+  .pl-head{padding:11px 13px;display:flex;align-items:center;gap:10px}
+  .pl-info{flex:1;min-width:0}
+  .pl-row{display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap}
+  .pl-nm{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em}
+  .pl-st{font-size:9px;padding:2px 7px;border-radius:5px;font-weight:600;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em}
+  .pl-st::before{content:'';width:5px;height:5px;border-radius:50%}
+  .pl-st.run{background:var(--blue-soft);color:var(--blue)}
+  .pl-st.run::before{background:var(--blue);animation:pulse 1.8s infinite}
+  .pl-st.done{background:var(--green-soft);color:var(--green)}
+  .pl-st.done::before{background:var(--green)}
+  .pl-st.queued{background:var(--surface-2);color:var(--ink-3)}
+  .pl-st.queued::before{background:var(--ink-4)}
+  .pl-desc{font-size:11.5px;color:var(--ink-3);line-height:1.45}
+  .pl-desc code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--ink-2)}
+  .pl-foot{padding:8px 13px;background:var(--surface-2);border-top:1px solid var(--line-2);display:flex;align-items:center;gap:8px;font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .pl-foot .it{display:flex;align-items:center;gap:5px}
+  .pl-foot .it b{color:var(--ink-2);font-weight:600}
+  .pl-foot .b{padding:4px 9px;border-radius:5px;font-size:10px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);margin-left:auto}
+  .pl-foot .b:hover{background:var(--surface-3);color:var(--ink)}
+
+  /* CTA banner — "run this pilot" */
+  .cta{margin:16px 20px 12px;padding:14px;background:var(--ink);color:var(--bg);border-radius:12px;display:flex;align-items:center;gap:14px}
+  .cta-i{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cta-i svg{width:18px;height:18px;color:#fff}
+  .cta-t{flex:1;min-width:0}
+  .cta-t .ll{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(250,250,249,.55);font-weight:700;font-family:'Geist Mono',monospace;margin-bottom:3px}
+  .cta-t .tt{font-size:14px;font-weight:600;color:var(--bg);line-height:1.35}
+  .cta-t .tt code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:11px;color:#fafaf9}
+  .cta-b{padding:7px 13px;border-radius:7px;background:var(--bg);color:var(--ink);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+  .cta-b svg{width:12px;height:12px}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .ft .mt b{color:var(--ink-2);font-weight:600}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        Tools · What-if
+      </div>
+      <h2>Pilot &amp; Replay</h2>
+      <div class="hsub">Re-run a past sprint with a different policy to see what would have changed · read-only sandbox</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </div>
+      <div class="hero-t">
+        <div class="l">Active scenario</div>
+        <h3>Sprint 6 · replayed with <code>secops-policy@v3.2</code></h3>
+        <div class="s">Sprint 6 actually ran under <code>v3.1</code>. This pilot re-routes its 14 tickets through the current policy to estimate the delta. <b>No commits, no merges</b> — comparison only.</div>
+      </div>
+    </div>
+
+    <!-- STATS — outcomes -->
+    <div class="stats">
+      <div class="st"><div class="v blue">5</div><div class="l">Re-routed</div></div>
+      <div class="st"><div class="v ok">+2</div><div class="l">Auto-merged</div></div>
+      <div class="st"><div class="v warn">+1</div><div class="l">To eng epic</div></div>
+      <div class="st"><div class="v ok">−18%</div><div class="l">MTTR est.</div></div>
+    </div>
+
+    <!-- FILTERS — pick the lens -->
+    <div class="filters">
+      <button class="fchip active">All changes <span class="ct">5</span></button>
+      <button class="fchip">Auto-merged <span class="ct">2</span></button>
+      <button class="fchip">Escalated <span class="ct">1</span></button>
+      <button class="fchip">Re-approved <span class="ct">2</span></button>
+    </div>
+
+    <!-- ============ PILOT SETUP ============ -->
+    <div class="sec">Pilot configuration<span class="ln"></span></div>
+
+    <div class="setup">
+      <div class="picker">
+        <span class="pl">Source</span>
+        <span class="pv">
+          Sprint 6 · 14 tickets · Apr 13–26
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="picker">
+        <span class="pl">Applies</span>
+        <span class="pv">
+          <code>secops-policy@v3.2</code>
+          <span class="badge">HEAD</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="picker">
+        <span class="pl">Override</span>
+        <span class="pv">
+          + Pending T4 backup-approver rule
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- ============ OUTCOME DIFF ============ -->
+    <div class="sec">Outcome diff<span class="ln"></span><span class="info">actual vs simulated</span></div>
+
+    <div class="diff">
+      <div class="diff-head">
+        <span class="lbl-a">Actual</span>
+        <span class="arr">→</span>
+        <span class="lbl-b">Simulated</span>
+      </div>
+
+      <div class="dr-row">
+        <span class="nm">Tickets shipped</span>
+        <span class="a">11 / 14</span>
+        <span class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>+2</span>
+        <span class="b better">13 / 14</span>
+      </div>
+      <div class="dr-row">
+        <span class="nm">MTTR · all sevs</span>
+        <span class="a">21<small>h</small></span>
+        <span class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>−18%</span>
+        <span class="b better">17<small>h</small> 12<small>m</small></span>
+      </div>
+      <div class="dr-row">
+        <span class="nm">Auto-merged (T1)</span>
+        <span class="a">3</span>
+        <span class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>+2</span>
+        <span class="b better">5</span>
+      </div>
+      <div class="dr-row">
+        <span class="nm">Escalated to eng</span>
+        <span class="a">0</span>
+        <span class="delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>+1</span>
+        <span class="b worse">1</span>
+      </div>
+      <div class="dr-row">
+        <span class="nm">Critical SLA breaches</span>
+        <span class="a">1</span>
+        <span class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>−1</span>
+        <span class="b better">0</span>
+      </div>
+      <div class="dr-row">
+        <span class="nm">Tokens used</span>
+        <span class="a">118<small>k</small></span>
+        <span class="delta flat">±0%</span>
+        <span class="b">119<small>k</small></span>
+      </div>
+    </div>
+
+    <!-- ============ ROUTING DIFFS ============ -->
+    <div class="sec">Tickets routed differently<span class="ln"></span><span class="info">5 of 14</span></div>
+
+    <div class="routes">
+
+      <!-- SEC-1729 auto-merged in pilot, was T2 in actual -->
+      <div class="rt up">
+        <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg></div>
+        <div class="body">
+          <div class="tid"><span>SEC-1729</span><span class="sev c">crit</span></div>
+          <div class="desc">SQL injection in <code>order-service</code> · <b>spring-sql-injection@2.3</b> · would now auto-merge under T1 (uses now ≥ 10)</div>
+          <div class="change"><span class="from">T2 · human merge</span><span class="arr">→</span><span class="to">T1 · auto-merge</span></div>
+        </div>
+      </div>
+
+      <!-- SEC-1735 auto-merged -->
+      <div class="rt up">
+        <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg></div>
+        <div class="body">
+          <div class="tid"><span>SEC-1722</span><span class="sev m">med</span></div>
+          <div class="desc">SHA-1 in <code>billing</code> hashing · <b>sha256-migration@1.4</b> · qualifies for T1 with current policy</div>
+          <div class="change"><span class="from">T2 · human merge</span><span class="arr">→</span><span class="to">T1 · auto-merge</span></div>
+        </div>
+      </div>
+
+      <!-- SEC-1718 — escalated to eng (worse outcome) -->
+      <div class="rt down">
+        <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="body">
+          <div class="tid"><span>SEC-1718</span><span class="sev h">high</span></div>
+          <div class="desc">Multi-file XSS in <code>billing</code> · <b>5 same-vuln findings</b> → trips complexity escalation rule, would route to eng epic</div>
+          <div class="change"><span class="from">DEV · auto-fixed</span><span class="arr">→</span><span class="to">Eng epic · 2 sprints</span></div>
+        </div>
+      </div>
+
+      <!-- SEC-1714 — backup approver triggered -->
+      <div class="rt side">
+        <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="body">
+          <div class="tid"><span>SEC-1714</span><span class="sev c">crit</span></div>
+          <div class="desc">Crypto change · @alice was OOO 3 days · backup-approver rule would route to <b>@bob</b>, closing <b>SLA breach</b></div>
+          <div class="change"><span class="from">@alice · 4d wait</span><span class="arr">→</span><span class="to">@bob · same day</span></div>
+        </div>
+      </div>
+
+      <!-- SEC-1720 re-approved -->
+      <div class="rt side">
+        <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="body">
+          <div class="tid"><span>SEC-1720</span><span class="sev h">high</span></div>
+          <div class="desc">Path traversal in <code>file-service</code> · second approver auto-assigned to <b>@bob</b> instead of waiting on Alice</div>
+          <div class="change"><span class="from">@alice · 2d wait</span><span class="arr">→</span><span class="to">@bob · 4h</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA — promote pilot to production policy -->
+    <div class="cta">
+      <div class="cta-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="cta-t">
+        <div class="ll">Looks good?</div>
+        <div class="tt">Promote pending <b>backup-approver</b> rule to <code>secops-policy@v3.3</code></div>
+      </div>
+      <button class="cta-b">
+        Promote
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- ============ ACTIVE PILOTS ============ -->
+    <div class="sec">Active pilots · 3<span class="ln"></span></div>
+
+    <article class="pl run">
+      <div class="pl-head">
+        <div class="pl-info">
+          <div class="pl-row">
+            <span class="pl-nm">Sprint 6 @ v3.2 + backup-approver</span>
+            <span class="pl-st run">Running</span>
+          </div>
+          <div class="pl-desc">Currently viewing · started <b>4 minutes ago</b> by @alice</div>
+        </div>
+      </div>
+      <div class="pl-foot">
+        <span class="it">progress: <b>5 of 14 routed</b></span>
+        <button class="b">View live</button>
+      </div>
+    </article>
+
+    <article class="pl">
+      <div class="pl-head">
+        <div class="pl-info">
+          <div class="pl-row">
+            <span class="pl-nm">Shadow T1 promotion · <code>spring-csrf</code></span>
+            <span class="pl-st done">Done</span>
+          </div>
+          <div class="pl-desc">Ran <b>spring-csrf@1.2</b> as if it were T1 against last 30 days · <b>5 of 5</b> would have auto-merged cleanly. Ready to graduate.</div>
+        </div>
+      </div>
+      <div class="pl-foot">
+        <span class="it">ran <b>2d ago</b></span>
+        <span class="it">by <b>@j.reviewer</b></span>
+        <button class="b">Open report</button>
+      </div>
+    </article>
+
+    <article class="pl">
+      <div class="pl-head">
+        <div class="pl-info">
+          <div class="pl-row">
+            <span class="pl-nm">Sprint 5 @ v3.0 (regression check)</span>
+            <span class="pl-st queued">Queued</span>
+          </div>
+          <div class="pl-desc">Verify rolling back to <b>v3.0</b> wouldn't break already-shipped fixes. Scheduled to run before any future policy rollback.</div>
+        </div>
+      </div>
+      <div class="pl-foot">
+        <span class="it">starts on <b>policy rollback</b></span>
+        <button class="b">Cancel</button>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      sandbox · <b>read-only</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Save scenario
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>

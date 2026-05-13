@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Metrics · SecOps Workbench</title>
+<meta name="description" content="Metrics drawer — MTTR 14h 22m, 98% DEV merge, token budget 28%, velocity trend across 4 sprints."/>
+<meta name="secops:screen-id" content="15"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Metrics · SecOps Workbench"/>
+<meta property="og:description" content="Metrics drawer — MTTR 14h 22m, 98% DEV merge, token budget 28%, velocity trend across 4 sprints."/>
+<meta name="secops:policy" content="policy-signals"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO — headline KPI */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .hero-l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:5px}
+  .hero h3{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-feature-settings:'tnum'}
+  .hero h3 small{font-size:14px;font-weight:500;color:var(--ink-3);margin-left:4px}
+  .hero .delta{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;font-family:'Geist Mono',monospace;background:var(--green-soft);color:var(--green);margin-top:4px}
+  .hero .delta svg{width:11px;height:11px}
+  .hero .delta.down{background:var(--red-soft);color:var(--red)}
+  .hero .lede{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.5}
+  .hero .lede b{color:var(--ink-2);font-weight:600}
+
+  /* Sparkline for hero */
+  .spark{width:96px;height:34px;flex-shrink:0;margin-top:6px}
+  .spark path.fill{fill:var(--green-soft);opacity:.6}
+  .spark path.line{fill:none;stroke:var(--green);stroke-width:1.5;stroke-linejoin:round}
+  .spark circle{fill:var(--green)}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:16px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .v.ok{color:var(--green)} .st .v.warn{color:var(--yellow)}
+  .st .v small{font-size:11px;font-weight:500;color:var(--ink-3);margin-left:2px}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* FILTERS */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3)}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec .info{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;font-weight:500}
+
+  /* MTTR BY SEVERITY */
+  .mttr{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .mr{padding:11px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line-2)}
+  .mr:last-child{border-bottom:none}
+  .mr .lbl{display:flex;align-items:center;gap:8px;width:88px;flex-shrink:0}
+  .mr .lbl .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .mr.crit .lbl .dot{background:var(--red)}
+  .mr.high .lbl .dot{background:var(--orange)}
+  .mr.med .lbl .dot{background:var(--yellow)}
+  .mr.low .lbl .dot{background:var(--blue)}
+  .mr .lbl .nm{font-size:12px;font-weight:600;color:var(--ink)}
+  .mr .lbl .ct{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;margin-left:auto}
+  .mr .bar{flex:1;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;position:relative}
+  .mr .bar .fill{height:100%;border-radius:4px;transition:width .3s}
+  .mr.crit .bar .fill{background:var(--red)}
+  .mr.high .bar .fill{background:var(--orange)}
+  .mr.med .bar .fill{background:var(--yellow)}
+  .mr.low .bar .fill{background:var(--blue)}
+  .mr .val{font-size:13px;font-weight:600;font-family:'Geist Mono',monospace;font-feature-settings:'tnum';color:var(--ink);width:54px;text-align:right;flex-shrink:0}
+  .mr .val small{font-size:10px;font-weight:500;color:var(--ink-3);margin-left:2px}
+
+  /* PLAYBOOK SUCCESS */
+  .pblist{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .pr{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2)}
+  .pr:last-child{border-bottom:none}
+  .pr .nm{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-2);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pr .uses{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0;width:42px;text-align:right}
+  .pr .rate{font-size:12px;font-weight:600;font-family:'Geist Mono',monospace;font-feature-settings:'tnum';width:42px;text-align:right;flex-shrink:0}
+  .pr.ok .rate{color:var(--green)}
+  .pr.warn .rate{color:var(--yellow)}
+  .pr .ind{width:42px;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;flex-shrink:0}
+  .pr .ind .if{height:100%}
+  .pr.ok .ind .if{background:var(--green)}
+  .pr.warn .ind .if{background:var(--yellow)}
+
+  /* AGENT UTILIZATION */
+  .agutil{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .ar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .ar:last-child{margin-bottom:0}
+  .ar .av{width:24px;height:24px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;letter-spacing:-.02em}
+  .ar .av.scn{background:var(--blue)} .ar .av.scn::before{content:'SCN'}
+  .ar .av.trg{background:var(--purple)} .ar .av.trg::before{content:'TRG'}
+  .ar .av.dev{background:var(--orange)} .ar .av.dev::before{content:'DEV'}
+  .ar .av.rev{background:var(--green)} .ar .av.rev::before{content:'REV'}
+  .ar .av.orc{background:var(--ink)} .ar .av.orc::before{content:'ORC'}
+  .ar .nm{font-size:12px;font-weight:600;width:90px;flex-shrink:0;color:var(--ink)}
+  .ar .bar2{flex:1;height:18px;background:var(--surface-2);border-radius:5px;overflow:hidden;position:relative;display:flex}
+  .ar .bar2 .fill2{height:100%;display:flex;align-items:center;padding-left:7px;font-size:10px;font-weight:600;color:#fff;font-family:'Geist Mono',monospace}
+  .ar.scn .bar2 .fill2{background:var(--blue)}
+  .ar.trg .bar2 .fill2{background:var(--purple)}
+  .ar.dev .bar2 .fill2{background:var(--orange)}
+  .ar.rev .bar2 .fill2{background:var(--green)}
+  .ar.orc .bar2 .fill2{background:var(--ink)}
+  .ar .tk{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;width:54px;text-align:right;flex-shrink:0}
+
+  /* SPRINT VELOCITY TREND */
+  .veloc{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .vchart{display:flex;align-items:flex-end;gap:10px;height:120px;padding:0 4px;margin-bottom:10px}
+  .vcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .vbar{width:100%;background:var(--surface-2);border-radius:5px 5px 0 0;position:relative;display:flex;flex-direction:column-reverse;overflow:hidden;min-height:8px}
+  .vbar .seg-done{background:var(--green)}
+  .vbar .seg-cur{background:var(--blue)}
+  .vbar .seg-miss{background:var(--surface-3)}
+  .vcol.cur .vbar{box-shadow:0 0 0 1.5px var(--blue);background:var(--blue-soft)}
+  .vlbl{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .vcol.cur .vlbl{color:var(--blue);font-weight:700}
+  .vnum{font-size:11px;font-weight:600;font-family:'Geist Mono',monospace;color:var(--ink-2);font-feature-settings:'tnum'}
+  .vlegend{display:flex;gap:14px;font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;padding-top:10px;border-top:1px solid var(--line-2)}
+  .vlegend .ll{display:flex;align-items:center;gap:5px}
+  .vlegend .ll::before{content:'';width:8px;height:8px;border-radius:2px}
+  .vlegend .ll.done::before{background:var(--green)}
+  .vlegend .ll.cur::before{background:var(--blue)}
+  .vlegend .ll.miss::before{background:var(--surface-3);border:1px solid var(--line)}
+
+  /* TOKEN BUDGET ROW */
+  .tok{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .tok-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .tok-l{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+  .tok h4{margin:0;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.005em}
+  .tok h4 .pct{color:var(--ink-3);font-weight:500;margin-left:4px}
+  .tok .meta{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-align:right}
+  .tok .meta b{color:var(--ink-2);font-weight:600}
+  .tok-bar{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;display:flex}
+  .tok-bar .used{background:var(--ink);border-radius:5px 0 0 5px}
+  .tok-bar .proj{background:var(--ink-4);opacity:.4}
+  .tok-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Tools · Insight
+      </div>
+      <h2>Metrics</h2>
+      <div class="hsub">How fast the team ships, how well the agents do · trending across the last 4 sprints</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="hero-l">Mean time to remediate · Sprint 7</div>
+          <h3>14h 22m</h3>
+          <div class="delta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            32% faster
+          </div>
+        </div>
+        <svg class="spark" viewBox="0 0 96 34" preserveAspectRatio="none">
+          <path class="fill" d="M0,22 L16,18 L32,24 L48,15 L64,12 L80,10 L96,8 L96,34 L0,34 Z"/>
+          <path class="line" d="M0,22 L16,18 L32,24 L48,15 L64,12 L80,10 L96,8"/>
+          <circle cx="96" cy="8" r="2.5"/>
+        </svg>
+      </div>
+      <div class="lede">Down from <b>21h</b> last sprint. Auto-merge tier (T1) finishes in <b>~4 minutes</b> · human-gated work averages <b>1.8 days</b>. Critical-severity SLA: 7 days, currently <b>well within</b>.</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="st"><div class="v ok">98<small>%</small></div><div class="l">DEV merge</div></div>
+      <div class="st"><div class="v ok">94<small>%</small></div><div class="l">TRG accepted</div></div>
+      <div class="st"><div class="v ok">91<small>%</small></div><div class="l">REV match</div></div>
+      <div class="st"><div class="v">142k</div><div class="l">Tokens wk</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <button class="fchip active">Sprint 7</button>
+      <button class="fchip">30 days</button>
+      <button class="fchip">90 days</button>
+      <button class="fchip">All time</button>
+    </div>
+
+    <!-- MTTR BY SEVERITY -->
+    <div class="sec">MTTR by severity · this sprint<span class="ln"></span><span class="info">7 closed</span></div>
+    <div class="mttr">
+      <div class="mr crit">
+        <div class="lbl"><span class="dot"></span><span class="nm">Critical</span><span class="ct">2</span></div>
+        <div class="bar"><div class="fill" style="width:88%"></div></div>
+        <div class="val">1.8<small>d</small></div>
+      </div>
+      <div class="mr high">
+        <div class="lbl"><span class="dot"></span><span class="nm">High</span><span class="ct">3</span></div>
+        <div class="bar"><div class="fill" style="width:42%"></div></div>
+        <div class="val">9<small>h</small></div>
+      </div>
+      <div class="mr med">
+        <div class="lbl"><span class="dot"></span><span class="nm">Medium</span><span class="ct">2</span></div>
+        <div class="bar"><div class="fill" style="width:14%"></div></div>
+        <div class="val">3<small>h</small></div>
+      </div>
+      <div class="mr low">
+        <div class="lbl"><span class="dot"></span><span class="nm">Low</span><span class="ct">0</span></div>
+        <div class="bar"><div class="fill" style="width:3%"></div></div>
+        <div class="val">—</div>
+      </div>
+    </div>
+
+    <!-- PLAYBOOK SUCCESS -->
+    <div class="sec">Success rate by playbook · 30d<span class="ln"></span><span class="info">sorted by use</span></div>
+    <div class="pblist">
+      <div class="pr ok">
+        <span class="nm">spring-sql-injection@2.3</span>
+        <span class="uses">12 use</span>
+        <div class="ind"><div class="if" style="width:100%"></div></div>
+        <span class="rate">100%</span>
+      </div>
+      <div class="pr ok">
+        <span class="nm">spring-csrf@1.2</span>
+        <span class="uses">5 use</span>
+        <div class="ind"><div class="if" style="width:100%"></div></div>
+        <span class="rate">100%</span>
+      </div>
+      <div class="pr warn">
+        <span class="nm">hardcoded-secret@1.1</span>
+        <span class="uses">4 use</span>
+        <div class="ind"><div class="if" style="width:75%"></div></div>
+        <span class="rate">75%</span>
+      </div>
+      <div class="pr ok">
+        <span class="nm">sha256-migration@1.4</span>
+        <span class="uses">3 use</span>
+        <div class="ind"><div class="if" style="width:100%"></div></div>
+        <span class="rate">100%</span>
+      </div>
+      <div class="pr ok">
+        <span class="nm">path-traversal@1.0</span>
+        <span class="uses">2 use</span>
+        <div class="ind"><div class="if" style="width:100%"></div></div>
+        <span class="rate">100%</span>
+      </div>
+    </div>
+
+    <!-- AGENT UTILIZATION -->
+    <div class="sec">Agent token use · this week<span class="ln"></span><span class="info">142k of 500k budget</span></div>
+    <div class="agutil">
+      <div class="ar dev">
+        <div class="av dev"></div>
+        <div class="nm">Developer</div>
+        <div class="bar2"><div class="fill2" style="width:61%">87k</div></div>
+        <div class="tk">61%</div>
+      </div>
+      <div class="ar trg">
+        <div class="av trg"></div>
+        <div class="nm">Triage</div>
+        <div class="bar2"><div class="fill2" style="width:22%">31k</div></div>
+        <div class="tk">22%</div>
+      </div>
+      <div class="ar rev">
+        <div class="av rev"></div>
+        <div class="nm">Reviewer</div>
+        <div class="bar2"><div class="fill2" style="width:13%">18k</div></div>
+        <div class="tk">13%</div>
+      </div>
+      <div class="ar orc">
+        <div class="av orc"></div>
+        <div class="nm">Orchestrator</div>
+        <div class="bar2"><div class="fill2" style="width:3%">4k</div></div>
+        <div class="tk">3%</div>
+      </div>
+      <div class="ar scn">
+        <div class="av scn"></div>
+        <div class="nm">Scanner</div>
+        <div class="bar2"><div class="fill2" style="width:1%;padding-left:4px">2k</div></div>
+        <div class="tk">1%</div>
+      </div>
+    </div>
+
+    <!-- TOKEN BUDGET -->
+    <div class="tok">
+      <div class="tok-top">
+        <div>
+          <div class="tok-l">Weekly token budget</div>
+          <h4>142k <span class="pct">/ 500k · 28%</span></h4>
+        </div>
+        <div class="meta">projected EOW<br><b>175k · 35%</b></div>
+      </div>
+      <div class="tok-bar">
+        <div class="used" style="width:28%"></div>
+        <div class="proj" style="width:7%"></div>
+      </div>
+      <div class="tok-foot">
+        <span>used so far</span>
+        <span>projected addition</span>
+        <span>500k weekly cap</span>
+      </div>
+    </div>
+
+    <!-- SPRINT VELOCITY -->
+    <div class="sec">Velocity · last 4 sprints<span class="ln"></span><span class="info">tickets done</span></div>
+    <div class="veloc">
+      <div class="vchart">
+        <div class="vcol">
+          <span class="vnum">8</span>
+          <div class="vbar" style="height:55%"><div class="seg-done" style="height:100%"></div></div>
+          <span class="vlbl">S4</span>
+        </div>
+        <div class="vcol">
+          <span class="vnum">11</span>
+          <div class="vbar" style="height:75%"><div class="seg-done" style="height:100%"></div></div>
+          <span class="vlbl">S5</span>
+        </div>
+        <div class="vcol">
+          <span class="vnum">11 / 14</span>
+          <div class="vbar" style="height:95%">
+            <div class="seg-done" style="height:79%"></div>
+            <div class="seg-miss" style="height:21%"></div>
+          </div>
+          <span class="vlbl">S6</span>
+        </div>
+        <div class="vcol cur">
+          <span class="vnum">6 / 12</span>
+          <div class="vbar" style="height:85%">
+            <div class="seg-cur" style="height:50%"></div>
+            <div class="seg-miss" style="height:50%"></div>
+          </div>
+          <span class="vlbl">S7 · day 8</span>
+        </div>
+      </div>
+      <div class="vlegend">
+        <span class="ll done">Shipped</span>
+        <span class="ll cur">In flight</span>
+        <span class="ll miss">Carried over</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      data: <b style="color:var(--ink-2)">2m ago</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>

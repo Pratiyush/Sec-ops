@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Toasts · SecOps Workbench</title>
+<meta name="description" content="Toast notifications — bottom-right stack, 4 variants: merge confirm, policy promotion, budget warn, auto-rollback."/>
+<meta name="secops:screen-id" content="21"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Toasts · SecOps Workbench"/>
+<meta property="og:description" content="Toast notifications — bottom-right stack, 4 variants: merge confirm, policy promotion, budget warn, auto-rollback."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+<meta name="secops:policy" content="secops-policy@v3.3"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-top:env(safe-area-inset-top,0);
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-right:env(safe-area-inset-right,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.22);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.22);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.22);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.22);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.22);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.22);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code,kbd{font-family:'Geist Mono',monospace}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes progBar{from{width:100%}to{width:0%}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* HOST PAGE — sprint board visible behind (not blurred — toasts overlay normal UI) */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .topright{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agp{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pd{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+
+  .doc{max-width:1180px;margin:0 auto;padding:32px 20px}
+  .doc h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin:0 0 8px}
+  .doc .lede{color:var(--ink-3);font-size:14px;line-height:1.55;margin:0 0 24px;max-width:62ch}
+
+  .ex-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:32px}
+  .ex{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:14px}
+  .ex h3{margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:-.005em}
+  .ex p{margin:0;font-size:11.5px;color:var(--ink-3);line-height:1.5;font-family:'Geist Mono',monospace}
+  .ex .var{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .ex .var::before{content:'';width:6px;height:6px;border-radius:50%}
+  .ex .var.success{background:var(--green-soft);color:var(--green)}
+  .ex .var.success::before{background:var(--green)}
+  .ex .var.info{background:var(--blue-soft);color:var(--blue)}
+  .ex .var.info::before{background:var(--blue)}
+  .ex .var.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .ex .var.warn::before{background:var(--yellow)}
+  .ex .var.err{background:var(--red-soft);color:var(--red)}
+  .ex .var.err::before{background:var(--red)}
+
+  /* Sprint-board host content */
+  .board-h{font-size:18px;font-weight:600;letter-spacing:-.015em;margin:0 0 4px}
+  .board-sub{font-size:12px;color:var(--ink-3);margin:0 0 18px;font-family:'Geist Mono',monospace}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media (max-width:1024px){.board{grid-template-columns:repeat(2,1fr)}}
+  .col{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:160px}
+  .col h4{margin:0 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;color:var(--ink-3);font-weight:600;display:flex;align-items:center;justify-content:space-between}
+  .col h4 .ct{background:var(--surface);padding:1px 5px;border-radius:4px;color:var(--ink-2)}
+  .tk{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:8px;margin-bottom:6px;font-size:11px;color:var(--ink-2)}
+  .tk b{font-family:'Geist Mono',monospace;color:var(--ink);font-weight:600;font-size:10px}
+  .tk .sub{color:var(--ink-3);font-size:10px;margin-top:2px}
+
+  /* ====== TOAST STACK ====== */
+  .stack{
+    position:fixed;
+    right:max(16px,var(--safe-right));
+    bottom:calc(16px + var(--safe-bottom));
+    z-index:60;
+    display:flex;flex-direction:column;gap:8px;
+    pointer-events:none;
+    max-width:calc(100vw - 32px);
+    width:380px;
+  }
+  @media (max-width:520px){
+    .stack{left:16px;right:16px;width:auto;bottom:calc(12px + var(--safe-bottom))}
+  }
+
+  .toast{
+    pointer-events:auto;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:12px 14px 14px;
+    box-shadow:0 12px 32px rgba(12,10,9,.16),0 0 0 1px rgba(12,10,9,.02);
+    display:flex;flex-direction:column;gap:0;
+    position:relative;overflow:hidden;
+    animation:slideUp .28s cubic-bezier(.32,.72,0,1);
+  }
+  .toast.success{border-left:3px solid var(--green)}
+  .toast.info{border-left:3px solid var(--blue)}
+  .toast.warn{border-left:3px solid var(--yellow)}
+  .toast.err{border-left:3px solid var(--red)}
+
+  .t-row{display:flex;align-items:flex-start;gap:10px}
+  .t-icon{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .t-icon svg{width:11px;height:11px;stroke-width:2.5}
+  .toast.success .t-icon{background:var(--green-soft);color:var(--green)}
+  .toast.info .t-icon{background:var(--blue-soft);color:var(--blue)}
+  .toast.warn .t-icon{background:var(--yellow-soft);color:var(--yellow)}
+  .toast.err .t-icon{background:var(--red-soft);color:var(--red)}
+
+  .t-body{flex:1;min-width:0}
+  .t-title{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.35}
+  .t-title code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--ink-2);font-weight:500}
+  .t-desc{font-size:11.5px;color:var(--ink-3);line-height:1.5;margin-top:3px}
+  .t-desc b{color:var(--ink-2);font-weight:600}
+  .t-desc code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:10.5px;color:var(--ink-2);font-family:'Geist Mono',monospace}
+  .t-meta{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .t-meta .it{display:flex;align-items:center;gap:4px}
+
+  .t-x{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0;margin-right:-4px}
+  .t-x:hover{background:var(--surface-2);color:var(--ink)}
+  .t-x svg{width:12px;height:12px}
+
+  .t-act{display:flex;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line-2)}
+  .t-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:5px;min-height:26px}
+  .t-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .t-btn.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .t-btn.p:hover{opacity:.9}
+  .t-btn.danger{color:var(--red);border-color:var(--red-soft)}
+  .t-btn.danger:hover{background:var(--red-soft)}
+  .t-btn svg{width:10px;height:10px}
+
+  /* Progress bar */
+  .prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:transparent}
+  .prog .fill{height:100%;animation:progBar 5s linear forwards}
+  .toast.success .prog .fill{background:var(--green)}
+  .toast.info .prog .fill{background:var(--blue)}
+  .toast.warn .prog .fill{background:var(--yellow)}
+  .toast.err .prog .fill{background:var(--red)}
+  .toast:hover .prog .fill{animation-play-state:paused}
+
+  /* Floating ⌘K hint */
+  .hint{position:fixed;top:60px;right:max(16px,var(--safe-right));z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:none;align-items:center;gap:6px}
+  @media (min-width:768px){.hint{display:inline-flex}}
+  .hint kbd{padding:1px 5px;background:var(--surface-2);border-radius:3px;font-size:10px;font-weight:600;color:var(--ink-2);font-family:'Geist Mono',monospace;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<!-- HOST page (NOT blurred — toasts coexist with normal UI) -->
+<header class="top">
+  <div class="brand"><div class="bm">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+  <nav class="tn">
+    <button class="tt">Remediation</button>
+    <button class="tt">Intake</button>
+    <button class="tt active">Sprint</button>
+    <button class="tt">AgentBook</button>
+  </nav>
+  <div class="topright">
+    <div class="agp"><span class="pd"></span><span style="display:none">Agent working</span></div>
+  </div>
+</header>
+
+<span class="hint"><kbd>⌘</kbd><kbd>K</kbd> search</span>
+
+<div class="doc">
+  <h1>Sprint 7 board</h1>
+  <p class="board-sub">12 tickets · 7 services · 32 velocity points · day 8 of 10</p>
+
+  <div class="board">
+    <div class="col">
+      <h4>Queued <span class="ct">3</span></h4>
+      <div class="tk"><b>SEC-1748</b><div class="sub">Weak random</div></div>
+      <div class="tk"><b>SEC-1751</b><div class="sub">Hardcoded JDBC</div></div>
+      <div class="tk"><b>SEC-1752</b><div class="sub">Jackson CVE</div></div>
+    </div>
+    <div class="col">
+      <h4>In progress <span class="ct">1</span></h4>
+      <div class="tk" style="border-color:var(--yellow);background:var(--yellow-soft)"><b>SEC-1747</b><div class="sub">CSRF · DEV · 62%</div></div>
+    </div>
+    <div class="col">
+      <h4>In review <span class="ct">2</span></h4>
+      <div class="tk" style="border-color:var(--ink-4);box-shadow:0 0 0 1px var(--surface-3)"><b>SEC-1745</b><div class="sub">SQLi · @you · 6d</div></div>
+      <div class="tk"><b>SEC-1743</b><div class="sub">XSS · 2d</div></div>
+    </div>
+    <div class="col">
+      <h4>Blocked <span class="ct">2</span></h4>
+      <div class="tk"><b>SEC-1740</b><div class="sub">JSP XSS · eng</div></div>
+      <div class="tk"><b>SEC-1746</b><div class="sub">Crypto · @alice 4d</div></div>
+    </div>
+    <div class="col">
+      <h4>Done <span class="ct">6</span></h4>
+      <div class="tk" style="opacity:.7"><b>SEC-1742</b><div class="sub">Path traversal</div></div>
+      <div class="tk" style="opacity:.7"><b>SEC-1741</b><div class="sub">Session fix</div></div>
+      <div class="tk" style="opacity:.7"><b>SEC-1738</b><div class="sub">SHA-256</div></div>
+    </div>
+  </div>
+
+  <!-- Documentation grid -->
+  <h1 style="margin-top:48px;font-size:18px">Toast variants</h1>
+  <p class="lede">Bottom-right stack · max 4 visible · 5s auto-dismiss with progress bar · pause on hover · all variants stack and respect <code style="background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:12px">prefers-reduced-motion</code>.</p>
+
+  <div class="ex-grid">
+    <div class="ex">
+      <span class="var success">Success</span>
+      <h3>Confirms a completed action</h3>
+      <p>Merge done, agent finished, policy promoted, file saved. Has optional "View" or "Undo" action.</p>
+    </div>
+    <div class="ex">
+      <span class="var info">Info</span>
+      <h3>Neutral system update</h3>
+      <p>Agent paused, scan started, replay queued. Read-only, no action needed.</p>
+    </div>
+    <div class="ex">
+      <span class="var warn">Warning</span>
+      <h3>Soft attention required</h3>
+      <p>Budget threshold, SLA approaching, pending approver OOO. May offer remediation action.</p>
+    </div>
+    <div class="ex">
+      <span class="var err">Error</span>
+      <h3>Failure or auto-rollback</h3>
+      <p>Build failed, rollback triggered, integration down. Always offers View / Retry. Stays longer (10s).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====== TOAST STACK (live demo) ====== -->
+<div class="stack" aria-live="polite" aria-atomic="false">
+
+  <!-- ERROR toast (oldest, top of stack — auto-rollback) -->
+  <div class="toast err">
+    <div class="t-row">
+      <div class="t-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-title">Auto-rollback triggered on <code>SEC-1738</code></div>
+        <div class="t-desc">Error rate spiked <b>2.4×</b> baseline after merge · reverted <code>commit b1f0c7e</code> within <b>11 min</b>. Pipeline rule from <code>secops-policy@v3.2</code>.</div>
+        <div class="t-meta"><span class="it">just now</span></div>
+      </div>
+      <button class="t-x" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="t-act">
+      <button class="t-btn p">View incident</button>
+      <button class="t-btn">Pause DEV agent</button>
+    </div>
+    <div class="prog"><div class="fill" style="animation-duration:10s"></div></div>
+  </div>
+
+  <!-- WARNING toast -->
+  <div class="toast warn">
+    <div class="t-row">
+      <div class="t-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-title">Token budget at <b>87%</b> for the week</div>
+        <div class="t-desc">Developer Agent used <b>87k of 100k</b> · projected to exceed by Friday. Triage and Reviewer well within budget.</div>
+        <div class="t-meta"><span class="it">5m ago</span></div>
+      </div>
+      <button class="t-x" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="t-act">
+      <button class="t-btn p">Open Metrics</button>
+      <button class="t-btn">Snooze 24h</button>
+    </div>
+    <div class="prog"><div class="fill"></div></div>
+  </div>
+
+  <!-- INFO toast — policy promoted from pilot -->
+  <div class="toast info">
+    <div class="t-row">
+      <div class="t-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-title"><code>secops-policy@v3.3</code> promoted from pilot</div>
+        <div class="t-desc">Backup-approver rule is now live · <b>@bob</b> added to <code>approver-pool@crypto</code>. Closes urgent action from Sprint 6 Retro.</div>
+        <div class="t-meta"><span class="it">2m ago · by @alice</span></div>
+      </div>
+      <button class="t-x" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="t-act">
+      <button class="t-btn p">View policy</button>
+      <button class="t-btn">Open diff</button>
+    </div>
+    <div class="prog"><div class="fill"></div></div>
+  </div>
+
+  <!-- SUCCESS toast — newest, bottom of stack -->
+  <div class="toast success">
+    <div class="t-row">
+      <div class="t-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="t-body">
+        <div class="t-title">Approved &amp; merged <code>SEC-1745</code></div>
+        <div class="t-desc">SQL injection fix deployed to <code>main</code> · pipeline green · auto-rollback armed for 15 min. <b>3 regression tests passing.</b></div>
+        <div class="t-meta">
+          <span class="it">just now</span>
+        </div>
+      </div>
+      <button class="t-x" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="t-act">
+      <button class="t-btn p">View ticket</button>
+      <button class="t-btn danger">Undo</button>
+    </div>
+    <div class="prog"><div class="fill"></div></div>
+  </div>
+
+</div>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+
+  // Dismiss toast on X click
+  document.querySelectorAll('.t-x').forEach(x => x.addEventListener('click', () => {
+    const t = x.closest('.toast');
+    t.style.transition = 'opacity .2s, transform .2s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(20px)';
+    setTimeout(() => t.remove(), 200);
+  }));
+</script>
+
+</body>
+</html>

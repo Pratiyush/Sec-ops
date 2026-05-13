@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Integrations · SecOps Workbench</title>
+<meta name="description" content="Integrations drawer — 7 sources: Fortify, Sonatype, Jira (degraded), GitLab, Modal, LangSmith, Slack."/>
+<meta name="secops:screen-id" content="10"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Integrations · SecOps Workbench"/>
+<meta property="og:description" content="Integrations drawer — 7 sources: Fortify, Sonatype, Jira (degraded), GitLab, Modal, LangSmith, Slack."/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(21,128,61,.4)}70%{box-shadow:0 0 0 10px rgba(21,128,61,0)}100%{box-shadow:0 0 0 0 rgba(21,128,61,0)}}
+
+  /* HOST */
+  .host{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;display:flex;flex-direction:column;gap:12px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:16px}
+  .orb{width:48px;height:48px;border-radius:14px;background:var(--yellow-soft);color:var(--yellow);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .orb svg{width:24px;height:24px}
+  .ht{flex:1;min-width:0}
+  .ht .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px}
+  .ht h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .ht .s{font-size:12px;color:var(--ink-3);margin-top:4px}
+  .ht .s b{color:var(--ink-2);font-weight:600}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:17px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .v.warn{color:var(--yellow)}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* ALERT */
+  .alert{margin:14px 20px;padding:11px 13px;background:var(--yellow-soft);border-radius:9px;display:flex;align-items:flex-start;gap:10px;border-left:3px solid var(--yellow);font-size:12px;line-height:1.5;color:var(--ink-2)}
+  .alert svg{width:18px;height:18px;color:var(--yellow);flex-shrink:0;margin-top:1px}
+  .alert b{color:var(--ink);font-weight:600}
+  .alert code{background:rgba(0,0,0,.08);padding:1px 5px;border-radius:3px;font-size:11px}
+  [data-theme="dark"] .alert code{background:rgba(255,255,255,.1)}
+  .alert button{margin-top:6px;font-size:11px;font-weight:600;color:var(--yellow);text-decoration:underline;display:block}
+
+  /* SECTION */
+  .sec{margin:24px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+
+  /* CARD */
+  .int{margin:0 20px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .int.warn{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow-soft)}
+
+  .ihd{padding:13px 14px;display:flex;align-items:center;gap:12px}
+  .mark{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+  .mark.fortify{background:#cc0000}
+  .mark.sonatype{background:#1c7ed6}
+  .mark.jira{background:#0052cc}
+  .mark.gitlab{background:linear-gradient(135deg,#fca326,#fc6d26)}
+  .mark.slack{background:#4a154b}
+  .mark.ls{background:var(--purple)}
+  .mark.modal{background:var(--ink)}
+
+  .info{flex:1;min-width:0}
+  .name{font-size:14px;font-weight:600;letter-spacing:-.005em}
+  .host{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .status{font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+  .status::before{content:'';width:6px;height:6px;border-radius:50%}
+  .status.ok{background:var(--green-soft);color:var(--green)}
+  .status.ok::before{background:var(--green);animation:pulse 2.5s infinite}
+  .status.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .status.warn::before{background:var(--yellow)}
+
+  /* METRICS */
+  .met{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line-2)}
+  .m{padding:9px 12px;background:var(--surface)}
+  .m .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+  .m .l svg{width:10px;height:10px;opacity:.7}
+  .m .v{font-size:13px;font-weight:600;font-family:'Geist Mono',monospace;font-feature-settings:'tnum'}
+  .m .v.warn{color:var(--yellow)}
+  .m .v small{font-size:10px;font-weight:500;color:var(--ink-3);margin-left:3px}
+
+  /* HEALTH STRIP */
+  .hs{padding:11px 14px 12px;border-top:1px solid var(--line-2)}
+  .hsh{display:flex;justify-content:space-between;margin-bottom:6px;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);font-weight:600;font-family:'Geist Mono',monospace}
+  .ticks{display:flex;gap:2px;height:18px;align-items:flex-end}
+  .tk{flex:1;background:var(--green);border-radius:2px;height:100%;opacity:.85}
+  .tk.y{background:var(--yellow)}
+  .tk.s{height:70%}
+
+  /* ACTIONS */
+  .act{padding:10px 14px;background:var(--surface-2);display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--line-2)}
+  .b{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:5px;min-height:28px}
+  .b.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .b svg{width:11px;height:11px}
+
+  /* EXPAND */
+  .exp{padding:0 14px;background:var(--surface);border-top:1px solid var(--line-2);max-height:1000px;overflow:hidden;transition:max-height .25s}
+  .exp.hidden{max-height:0;border-top:none}
+  .ei{padding:13px 0}
+  .et{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:8px;display:flex;justify-content:space-between}
+  .et .ts{font-weight:500;color:var(--ink-4)}
+
+  .console{background:#0c0a09;color:#fafaf9;border-radius:8px;padding:11px 13px;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.75;overflow-x:auto}
+  .cr{display:flex;gap:8px;padding:1px 0}
+  .cr .sym{width:12px;flex-shrink:0;font-weight:700}
+  .cr.run{color:#a8a29e} .cr.run .sym::before{content:'$'}
+  .cr.ok{color:#86efac} .cr.ok .sym::before{content:'✓'}
+  .cr.note{color:#fbbf24} .cr.note .sym::before{content:'!'}
+  .cr b{color:#fafaf9;font-weight:600}
+
+  .sl{display:flex;flex-direction:column}
+  .sr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .sr:last-child{border:none}
+  .sr .k{color:var(--ink-2);font-family:'Geist Mono',monospace;font-size:11px;display:flex;align-items:center;gap:6px}
+  .sr .k svg{width:11px;height:11px;flex-shrink:0}
+  .sr.ok .k svg{color:var(--green)}
+  .sr.warn .k svg{color:var(--yellow)}
+  .sr.deny .k svg{color:var(--ink-4)}
+  .sr .vv{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+  .sr .vv.ok{background:var(--green-soft);color:var(--green)}
+  .sr .vv.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .sr .vv.deny{background:var(--surface-2);color:var(--ink-3)}
+
+  /* ADD */
+  .add{margin:16px 20px 24px;padding:18px;border:1.5px dashed var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--ink-3);width:calc(100% - 40px);background:transparent}
+  .add:hover{border-color:var(--ink-3);color:var(--ink-2);background:var(--surface-2)}
+  .pc{width:32px;height:32px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-3);margin-bottom:4px}
+  .pc svg{width:16px;height:16px}
+  .tl{font-weight:600;color:var(--ink-2)}
+  .sl2{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+</style>
+</head>
+<body>
+
+<div class="host" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div><span>SecOps Workbench</span></div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<aside class="dr" role="dialog">
+  <div class="dh">
+    <div>
+      <div class="crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Tools · Operate</div>
+      <h2>Integrations</h2>
+      <div class="hsub">External systems the agents read from and write to · sync status, scope, credentials</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <div class="hero">
+      <div class="orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+      <div class="ht">
+        <div class="l">System status</div>
+        <h3>1 source degraded · 6 healthy</h3>
+        <div class="s">Last check: <b>4m ago</b> · uptime 30d <b>99.4%</b></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="st"><div class="v">7</div><div class="l">Connected</div></div>
+      <div class="st"><div class="v warn">1</div><div class="l">Degraded</div></div>
+      <div class="st"><div class="v">0</div><div class="l">Failing</div></div>
+      <div class="st"><div class="v">99.4%</div><div class="l">Uptime 30d</div></div>
+    </div>
+
+    <div class="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <b>Jira owner-mapping is degraded</b> at <code>98%</code>. One ticket — <code>SEC-1753</code> — is missing CWE classification, so the agent will skip it until resolved.
+        <button>Open SEC-1753 in Jira →</button>
+      </div>
+    </div>
+
+    <div class="sec">Scanners · 2 connected<span class="ln"></span></div>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark fortify">F</div>
+        <div class="info"><div class="name">Fortify SSC</div><div class="host">fortify.company.com · token <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">●●●●5e2a</code></div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> last sync</div><div class="v">8h ago</div></div>
+        <div class="m"><div class="l">p95</div><div class="v">118<small>ms</small></div></div>
+        <div class="m"><div class="l">scope</div><div class="v">5 projects</div></div>
+      </div>
+      <div class="hs">
+        <div class="hsh"><span>Health · last 24 syncs</span><span>24h → now</span></div>
+        <div class="ticks">
+          <div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div>
+        </div>
+      </div>
+      <div class="act">
+        <button class="b p" onclick="document.getElementById('e1').classList.toggle('hidden')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Dry-run sync</button>
+        <button class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Sync now</button>
+        <button class="b">Configure</button>
+      </div>
+      <div class="exp hidden" id="e1">
+        <div class="ei">
+          <div class="et"><span>Dry-run · simulated</span><span class="ts">would take ~2.4s</span></div>
+          <div class="console">
+            <div class="cr run"><span class="sym"></span><span>connect to fortify.company.com:8443</span></div>
+            <div class="cr ok"><span class="sym"></span><span>token validated · scope: <b>read-findings, list-projects</b></span></div>
+            <div class="cr run"><span class="sym"></span><span>list projects · <b>5 found</b></span></div>
+            <div class="cr ok"><span class="sym"></span><span>fetch new findings · would return <b>14 items</b></span></div>
+            <div class="cr note"><span class="sym"></span><span>would create: <b>3 critical</b>, 6 high, 5 med</span></div>
+            <div class="cr ok"><span class="sym"></span><span>no destructive writes · safe to commit</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark sonatype">S</div>
+        <div class="info"><div class="name">Sonatype (SCA)</div><div class="host">nexus.company.com</div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">last sync</div><div class="v">1h ago</div></div>
+        <div class="m"><div class="l">p95</div><div class="v">87<small>ms</small></div></div>
+        <div class="m"><div class="l">scope</div><div class="v">8 repos</div></div>
+      </div>
+      <div class="hs">
+        <div class="hsh"><span>Health · last 24 syncs</span><span>24h → now</span></div>
+        <div class="ticks">
+          <div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk y s"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div>
+        </div>
+      </div>
+      <div class="act">
+        <button class="b p">Dry-run</button>
+        <button class="b">Sync now</button>
+        <button class="b">Configure</button>
+      </div>
+    </article>
+
+    <div class="sec">Tracking &amp; code · 2 connected<span class="ln"></span></div>
+
+    <article class="int warn">
+      <div class="ihd">
+        <div class="mark jira">J</div>
+        <div class="info"><div class="name">Jira</div><div class="host">company.atlassian.net · project <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">SEC</code></div></div>
+        <span class="status warn">Degraded</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">last sync</div><div class="v">4m ago</div></div>
+        <div class="m"><div class="l">owner-map</div><div class="v warn">98%</div></div>
+        <div class="m"><div class="l">scope</div><div class="v">12 open</div></div>
+      </div>
+      <div class="hs">
+        <div class="hsh"><span>Health · last 24 syncs</span><span>24h → now</span></div>
+        <div class="ticks">
+          <div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk y"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk y"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk"></div><div class="tk y"></div>
+        </div>
+      </div>
+      <div class="act">
+        <button class="b p" onclick="document.getElementById('e2').classList.toggle('hidden')">Permissions</button>
+        <button class="b">Dry-run</button>
+        <button class="b">Configure</button>
+      </div>
+      <div class="exp hidden" id="e2">
+        <div class="ei">
+          <div class="et"><span>Granted permissions · scope SEC</span><span class="ts">verified 4m ago</span></div>
+          <div class="sl">
+            <div class="sr ok"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> browse-projects</span><span class="vv ok">granted</span></div>
+            <div class="sr ok"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> create-issues</span><span class="vv ok">granted</span></div>
+            <div class="sr ok"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> edit-issues</span><span class="vv ok">granted</span></div>
+            <div class="sr ok"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> transition-issues</span><span class="vv ok">granted</span></div>
+            <div class="sr ok"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> add-comments</span><span class="vv ok">granted</span></div>
+            <div class="sr warn"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> delete-issues</span><span class="vv warn">denied · by design</span></div>
+            <div class="sr deny"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg> admin-projects</span><span class="vv deny">not requested</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark gitlab">G</div>
+        <div class="info"><div class="name">GitLab</div><div class="host">gitlab.company.com · group <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">platform/*</code></div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">last sync</div><div class="v">12m ago</div></div>
+        <div class="m"><div class="l">webhooks</div><div class="v">OK</div></div>
+        <div class="m"><div class="l">scope</div><div class="v">47 repos</div></div>
+      </div>
+      <div class="act">
+        <button class="b p">Dry-run MR</button>
+        <button class="b">Webhooks</button>
+        <button class="b">Configure</button>
+      </div>
+    </article>
+
+    <div class="sec">Agent infrastructure · 3 connected<span class="ln"></span></div>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark modal">M</div>
+        <div class="info"><div class="name">Modal · sandbox</div><div class="host">modal.com · workspace <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">secops-prod</code></div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">runners</div><div class="v">3 active</div></div>
+        <div class="m"><div class="l">cold-start p95</div><div class="v">2.1<small>s</small></div></div>
+        <div class="m"><div class="l">runs today</div><div class="v">42</div></div>
+      </div>
+      <div class="act">
+        <button class="b">Test sandbox</button>
+        <button class="b">Configure</button>
+      </div>
+    </article>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark ls">L</div>
+        <div class="info"><div class="name">LangSmith · traces</div><div class="host">smith.langchain.com · project <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">secops</code></div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">tokens this week</div><div class="v">142k</div></div>
+        <div class="m"><div class="l">traces today</div><div class="v">28</div></div>
+        <div class="m"><div class="l">budget</div><div class="v">28%</div></div>
+      </div>
+      <div class="act">
+        <button class="b">Open dashboard</button>
+        <button class="b">Configure</button>
+      </div>
+    </article>
+
+    <article class="int">
+      <div class="ihd">
+        <div class="mark slack">#</div>
+        <div class="info"><div class="name">Slack</div><div class="host">company.slack.com · channel <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10px">#sec-ops</code></div></div>
+        <span class="status ok">Healthy</span>
+      </div>
+      <div class="met">
+        <div class="m"><div class="l">posts today</div><div class="v">17</div></div>
+        <div class="m"><div class="l">@-mentions</div><div class="v">OK</div></div>
+        <div class="m"><div class="l">channels</div><div class="v">1 active</div></div>
+      </div>
+      <div class="act">
+        <button class="b p">Send test</button>
+        <button class="b">Configure</button>
+      </div>
+    </article>
+
+    <button class="add">
+      <div class="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="tl">Connect a new source</div>
+      <div class="sl2">Snyk · Datadog · PagerDuty · GitHub · …</div>
+    </button>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> last check: <b style="color:var(--ink-2)">4m ago</b></span>
+    <div style="display:flex;gap:6px"><button class="fb">Re-check all</button><button class="fb p">Done</button></div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+</script>
+
+</body>
+</html>

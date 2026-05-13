@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "current": "secops-policy@v3.2",
+  "pending": "secops-policy@v3.3",
+  "history": [
+    { "version": "v3.2", "promotedAt": "2026-04-22", "status": "current" },
+    { "version": "v3.1", "promotedAt": "2026-03-18", "status": "archived" },
+    { "version": "v3.0", "promotedAt": "2026-02-04", "status": "archived" },
+    { "version": "v2.9", "promotedAt": "2026-01-12", "status": "archived" }
+  ],
+  "groups": {
+    "autonomy": [
+      { "id": "A-01", "rule": "T1 playbooks may merge with 1 human approver.", "status": "live" },
+      { "id": "A-02", "rule": "T2 playbooks require 2 human approvers.",      "status": "live" },
+      { "id": "A-03", "rule": "T3 playbooks block on intake; human owns fix.", "status": "live" },
+      { "id": "A-04", "rule": "Critical severity always requires the security lead in the approver stack.", "status": "live" }
+    ],
+    "recovery": [
+      { "id": "R-01", "rule": "Auto-rollback if regression matrix drops below 100% within 30 min of merge.", "status": "live" },
+      { "id": "R-02", "rule": "Auto-rollback on any error-rate spike > 2x baseline.", "status": "live" },
+      { "id": "R-03", "rule": "Budget breach (>110% of estimate) pauses agent and asks human.", "status": "live" }
+    ],
+    "audit": [
+      { "id": "U-01", "rule": "Every gate decision logged with evidence pointer.", "status": "live" },
+      { "id": "U-02", "rule": "Approver identity captured via SSO assertion.", "status": "live" },
+      { "id": "U-03", "rule": "Playbook diff preview must be visible at approval time.", "status": "live" }
+    ],
+    "release-gates": [
+      { "id": "G-01", "rule": "Tests must pass on the target branch head.", "status": "live" },
+      { "id": "G-02", "rule": "No new high/critical findings introduced by the fix.", "status": "live" },
+      { "id": "G-03", "rule": "Side-effect probes green for adjacent endpoints.", "status": "live" },
+      { "id": "G-04", "rule": "Backup approver available for crypto-touching changes.", "status": "pending", "introducedIn": "v3.3", "rationale": "From retro: single approver became blocker on SEC-1689 over the weekend." }
+    ]
+  },
+  "stats": {
+    "rulesTotal": 14,
+    "rulesPending": 1,
+    "validationRuns": 1
+  }
+}

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Settings · SecOps Workbench</title>
+<meta name="description" content="Settings drawer — personal preferences, 6 sections, 2 policy-locked toggles, separated from org policy."/>
+<meta name="secops:screen-id" content="18"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Settings · SecOps Workbench"/>
+<meta property="og:description" content="Settings drawer — personal preferences, 6 sections, 2 policy-locked toggles, separated from org policy."/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --teal:#0d9488; --teal-soft:#ccfbf1;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+    --teal:#5eead4; --teal-soft:rgba(20,184,166,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code,kbd{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO — user profile */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px}
+  .hero-av{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:-.02em;flex-shrink:0}
+  .hero-t{flex:1;min-width:0}
+  .hero-t .nm{font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.2;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .hero-t .nm .role{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;background:var(--teal-soft);color:var(--teal);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+  .hero-t .em{font-size:12px;color:var(--ink-3);margin-top:2px;font-family:'Geist Mono',monospace}
+  .hero-t .org{font-size:11px;color:var(--ink-4);margin-top:6px;font-family:'Geist Mono',monospace}
+  .hero-t .org code{background:var(--surface-2);padding:1px 5px;border-radius:3px;color:var(--ink-2)}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:16px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* JUMP NAV */
+  .jump{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .jchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .jchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .jchip svg{width:11px;height:11px}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec .ic{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--ink-2);flex-shrink:0}
+  .sec .ic svg{width:11px;height:11px}
+
+  /* PREFERENCE ROW */
+  .prefs{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .pr{padding:11px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line-2)}
+  .pr:last-child{border:none}
+  .pr-l{flex:1;min-width:0}
+  .pr-nm{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pr-nm .badge{font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+  .pr-nm .badge.locked{background:var(--surface-2);color:var(--ink-3);display:inline-flex;align-items:center;gap:3px}
+  .pr-nm .badge.locked svg{width:9px;height:9px}
+  .pr-d{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+  .pr-d code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .pr-d b{color:var(--ink-2);font-weight:600}
+
+  /* Toggle */
+  .tg{width:34px;height:20px;border-radius:11px;background:var(--green);position:relative;flex-shrink:0;cursor:pointer;transition:background .15s}
+  .tg::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:right .2s}
+  .tg.off{background:var(--surface-3)}
+  .tg.off::after{right:auto;left:2px}
+  .tg.lock{background:var(--surface-3);cursor:not-allowed;opacity:.5}
+
+  /* Select pill (for value choices) */
+  .sel{padding:5px 10px;border-radius:7px;background:var(--surface-2);border:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;flex-shrink:0}
+  .sel:hover{background:var(--surface-3)}
+  .sel svg{width:10px;height:10px;color:var(--ink-3)}
+
+  /* THEME PICKER */
+  .theme-pick{padding:13px 14px;display:flex;gap:8px;border-bottom:1px solid var(--line-2)}
+  .theme-pick .tp{flex:1;padding:9px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .theme-pick .tp:hover{border-color:var(--ink-4)}
+  .theme-pick .tp.active{border-color:var(--ink);background:var(--surface-2)}
+  .theme-pick .tp .swatch{width:28px;height:28px;border-radius:7px;border:1px solid var(--line)}
+  .theme-pick .tp.light .swatch{background:#fafaf9}
+  .theme-pick .tp.dark .swatch{background:#0a0a0a}
+  .theme-pick .tp.system .swatch{background:linear-gradient(135deg,#fafaf9 50%, #0a0a0a 50%)}
+
+  /* Density */
+  .seg{display:flex;background:var(--surface-2);border-radius:8px;padding:3px;flex-shrink:0;border:1px solid var(--line)}
+  .seg button{padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;color:var(--ink-3)}
+  .seg button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(12,10,9,.04)}
+
+  /* KEYBOARD SHORTCUTS */
+  .kbd-list{display:flex;flex-direction:column}
+  .kr{padding:9px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2);font-size:12.5px}
+  .kr:last-child{border:none}
+  .kr .nm{flex:1;color:var(--ink-2)}
+  .kr .keys{display:inline-flex;gap:3px;flex-shrink:0}
+  kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;font-size:10.5px;font-weight:600;color:var(--ink-2);box-shadow:0 1px 0 var(--line);font-family:'Geist Mono',monospace}
+  .kr .plus{color:var(--ink-4);font-size:10px;align-self:center}
+
+  /* ACCOUNT ROWS */
+  .acc-row{padding:11px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line-2);font-size:12px}
+  .acc-row:last-child{border:none}
+  .acc-row .nm{flex:1;color:var(--ink-2);font-weight:500}
+  .acc-row .val{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);text-align:right;flex-shrink:0}
+  .acc-row .val b{color:var(--ink-2);font-weight:600}
+  .acc-row .b{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+  .acc-row .b:hover{background:var(--surface-2);color:var(--ink)}
+  .acc-row .b.danger{color:var(--red);border-color:var(--red-soft)}
+  .acc-row .b.danger:hover{background:var(--red-soft)}
+
+  /* Policy note banner */
+  .pol{margin:0 20px 14px;padding:10px 13px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;display:flex;align-items:flex-start;gap:9px;font-size:11.5px;color:var(--ink-3);line-height:1.45}
+  .pol svg{width:14px;height:14px;color:var(--ink-3);flex-shrink:0;margin-top:1px}
+  .pol b{color:var(--ink-2);font-weight:600}
+  .pol code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .pol button{color:var(--ink-2);text-decoration:underline;font-weight:600}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px;color:var(--green)}
+  .ft .mt b{color:var(--green);font-weight:600}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        You · Personal
+      </div>
+      <h2>Settings</h2>
+      <div class="hsub">Your personal preferences · org-wide rules live in <button style="text-decoration:underline;font-weight:600;color:var(--ink-2);font-family:inherit;font-size:inherit">Production policy</button></div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO — profile -->
+    <div class="hero">
+      <div class="hero-av">AB</div>
+      <div class="hero-t">
+        <div class="nm">Alice Brown <span class="role">Security lead</span></div>
+        <div class="em">alice.brown@company.com</div>
+        <div class="org">workspace · <code>secops-prod</code> · joined Jan 2026</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="st"><div class="v">17</div><div class="l">Approvals 30d</div></div>
+      <div class="st"><div class="v">2</div><div class="l">Pending you</div></div>
+      <div class="st"><div class="v">6</div><div class="l">Subscriptions</div></div>
+      <div class="st"><div class="v">2.4<span style="font-size:11px;color:var(--ink-3);margin-left:2px">h</span></div><div class="l">Avg approve t</div></div>
+    </div>
+
+    <!-- JUMP NAV -->
+    <div class="jump">
+      <button class="jchip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </button>
+      <button class="jchip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Workspace
+      </button>
+      <button class="jchip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Approvals
+      </button>
+      <button class="jchip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41"/></svg>
+        Appearance
+      </button>
+    </div>
+
+    <!-- ============ NOTIFICATIONS ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Notifications · 4
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Mentions in AgentBook</div>
+          <div class="pr-d">When an agent or human <code>@</code>-mentions you in a thread</div>
+        </div>
+        <div class="sel">All <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Approval requests</div>
+          <div class="pr-d">When a ticket is waiting on your sign-off · <b>Slack + email</b></div>
+        </div>
+        <div class="tg"></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Sprint summary</div>
+          <div class="pr-d">Daily 09:00 PT rollup of agent activity, blockers, queued items</div>
+        </div>
+        <div class="sel">Daily <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Critical-severity escalations</div>
+          <div class="pr-d">Findings that exceed SLA or breach the <code>secops-policy@v3.2</code> critical-override rule · always on (policy)</div>
+        </div>
+        <div class="tg lock"></div>
+      </div>
+    </div>
+
+    <!-- Policy note about critical -->
+    <div class="pol">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div>The critical-escalation channel is <b>required by policy</b> and can't be muted. Edit it in <button>Production policy</button>.</div>
+    </div>
+
+    <!-- ============ WORKSPACE DEFAULTS ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Workspace defaults · 4
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Default landing page</div>
+          <div class="pr-d">Where the app opens when you sign in</div>
+        </div>
+        <div class="sel">Sprint <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Sprint board default sort</div>
+          <div class="pr-d">Order tickets within each column</div>
+        </div>
+        <div class="sel">SLA risk <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Auto-focus my queue</div>
+          <div class="pr-d">When you open a page, jump to items where <b>you</b> are the blocker</div>
+        </div>
+        <div class="tg"></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Show agent reasoning by default</div>
+          <div class="pr-d">Expand the Reasoning panel in Evidence tab on every ticket</div>
+        </div>
+        <div class="tg off"></div>
+      </div>
+    </div>
+
+    <!-- ============ APPROVALS ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      Approval preferences · 4
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Batch approvals</div>
+          <div class="pr-d">Group up to <code>5</code> compatible MRs (same playbook, same severity) into one review</div>
+        </div>
+        <div class="tg"></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Require dry-run before merge</div>
+          <div class="pr-d">Show a sandbox dry-run trace before letting you click Approve</div>
+        </div>
+        <div class="tg"></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">
+            Require diff view
+            <span class="badge locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>policy</span>
+          </div>
+          <div class="pr-d">Always show the code diff on critical-severity approvals · required by <code>secops-policy@v3.2</code></div>
+        </div>
+        <div class="tg lock"></div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Quick-approve hotkey</div>
+          <div class="pr-d">Allow <kbd>⌘</kbd><kbd>↵</kbd> to approve without confirmation modal · only for low/medium</div>
+        </div>
+        <div class="tg off"></div>
+      </div>
+    </div>
+
+    <!-- ============ APPEARANCE ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+      Appearance
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="theme-pick">
+        <div class="tp light">
+          <div class="swatch"></div>
+          Light
+        </div>
+        <div class="tp dark">
+          <div class="swatch"></div>
+          Dark
+        </div>
+        <div class="tp system active">
+          <div class="swatch"></div>
+          System
+        </div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Density</div>
+          <div class="pr-d">Spacing of cards and rows · affects how much you see at once</div>
+        </div>
+        <div class="seg">
+          <button>Cozy</button>
+          <button class="active">Default</button>
+          <button>Compact</button>
+        </div>
+      </div>
+      <div class="pr">
+        <div class="pr-l">
+          <div class="pr-nm">Reduced motion</div>
+          <div class="pr-d">Disable drawer slide, pulse animations, and transitions · follows <code>prefers-reduced-motion</code></div>
+        </div>
+        <div class="tg off"></div>
+      </div>
+    </div>
+
+    <!-- ============ KEYBOARD SHORTCUTS ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg></span>
+      Keyboard shortcuts · 6
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="kbd-list">
+        <div class="kr">
+          <span class="nm">Open search</span>
+          <span class="keys"><kbd>⌘</kbd><span class="plus">+</span><kbd>K</kbd></span>
+        </div>
+        <div class="kr">
+          <span class="nm">Approve current ticket</span>
+          <span class="keys"><kbd>⌘</kbd><span class="plus">+</span><kbd>↵</kbd></span>
+        </div>
+        <div class="kr">
+          <span class="nm">Next ticket in queue</span>
+          <span class="keys"><kbd>J</kbd></span>
+        </div>
+        <div class="kr">
+          <span class="nm">Previous ticket in queue</span>
+          <span class="keys"><kbd>K</kbd></span>
+        </div>
+        <div class="kr">
+          <span class="nm">Toggle Evidence panel</span>
+          <span class="keys"><kbd>E</kbd></span>
+        </div>
+        <div class="kr">
+          <span class="nm">Close drawer / modal</span>
+          <span class="keys"><kbd>Esc</kbd></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ACCOUNT ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      Account &amp; access
+      <span class="ln"></span>
+    </div>
+
+    <div class="prefs">
+      <div class="acc-row">
+        <span class="nm">Session</span>
+        <span class="val">started <b>3h ago</b><br>Mac · Chrome · SF</span>
+      </div>
+      <div class="acc-row">
+        <span class="nm">SSO provider</span>
+        <span class="val"><b>Okta</b> · <code>company.okta.com</code></span>
+      </div>
+      <div class="acc-row">
+        <span class="nm">API token</span>
+        <span class="val">●●●● <b>9c4f</b> · expires in 12d</span>
+        <button class="b">Rotate</button>
+      </div>
+      <div class="acc-row">
+        <span class="nm">Active sessions</span>
+        <span class="val"><b>2 devices</b></span>
+        <button class="b">Manage</button>
+      </div>
+      <div class="acc-row">
+        <span class="nm">Sign out</span>
+        <span class="val">end this session only</span>
+        <button class="b danger">Sign out</button>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      changes saved <b>just now</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Reset to defaults
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  // toggles
+  document.querySelectorAll('.tg').forEach(t => {
+    if (t.classList.contains('lock')) return;
+    t.addEventListener('click', () => t.classList.toggle('off'));
+  });
+  // theme picker
+  document.querySelectorAll('.theme-pick .tp').forEach(tp => tp.addEventListener('click', () => {
+    document.querySelectorAll('.theme-pick .tp').forEach(x => x.classList.remove('active'));
+    tp.classList.add('active');
+  }));
+  // segmented density
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secops.local/schema/screens.schema.json",
+  "title": "Screens manifest",
+  "type": "object",
+  "required": ["version", "screens"],
+  "properties": {
+    "version": { "type": "string" },
+    "generatedAt": { "type": "string", "format": "date" },
+    "narrative": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "entry": { "type": "string" },
+        "crux": { "type": "string" },
+        "resolution": { "type": "string" }
+      }
+    },
+    "clusters": { "type": "object", "additionalProperties": { "type": "string" } },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "file", "cluster", "title"],
+        "properties": {
+          "id":      { "type": "string", "pattern": "^[0-9]{2}$" },
+          "file":    { "type": "string", "pattern": "\\.html$" },
+          "cluster": { "type": "string", "enum": ["remediation-tabs", "pages", "drawers", "overlays"] },
+          "title":   { "type": "string" },
+          "thread":  { "type": "string" },
+          "policy":  { "type": "string" },
+          "tags":    { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Sprint · SecOps Workbench</title>
+<meta name="description" content="Sprint board — 5-column kanban, 12 tickets, day 8 of 10, 32 velocity points, 142k/500k tokens."/>
+<meta name="secops:screen-id" content="08"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Sprint · SecOps Workbench"/>
+<meta property="og:description" content="Sprint board — 5-column kanban, 12 tickets, day 8 of 10, 32 velocity points, 142k/500k tokens."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03';padding-bottom:calc(72px + var(--safe-bottom))}
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* SHARED SHELL */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  .url-bar{background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap}
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  .main{max-width:1320px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  /* ===== PAGE HEADER ===== */
+  .page-h{margin-bottom:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .sprint-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .sprint-title h1{font-size:24px;font-weight:600;margin:0;letter-spacing:-.02em;line-height:1.2}
+  @media (min-width:640px){.sprint-title h1{font-size:28px}}
+  .sprint-title .pick{font-size:12px;font-family:'Geist Mono',monospace;color:var(--ink-3);display:flex;align-items:center;gap:4px;cursor:pointer;padding:2px 6px;border-radius:4px}
+  .sprint-title .pick:hover{background:var(--surface-2);color:var(--ink)}
+  .sprint-title .pick svg{width:12px;height:12px}
+  .sprint-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .sprint-meta .dates{font-size:13px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .sprint-meta .day-pill{
+    font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;
+    background:var(--ink);color:var(--bg);font-family:'Geist Mono',monospace;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .sprint-meta .day-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+
+  .page-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.9}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  /* ===== SPRINT STATS ===== */
+  .stats-row{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;
+  }
+  @media (min-width:640px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+  @media (min-width:1024px){.stats-row{grid-template-columns:repeat(6,1fr)}}
+
+  .stat{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;
+    display:flex;flex-direction:column;justify-content:space-between;min-height:90px;
+  }
+  .stat .l{
+    font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;
+    font-weight:600;font-family:'Geist Mono',monospace;
+    display:flex;align-items:center;gap:5px;
+  }
+  .stat .l svg{width:11px;height:11px}
+  .stat .v{font-size:24px;font-weight:600;letter-spacing:-.03em;line-height:1;font-feature-settings:'tnum';margin-top:8px}
+  .stat .v small{font-size:13px;font-weight:500;color:var(--ink-3);margin-left:4px}
+  .stat.danger .v{color:var(--red)}
+  .stat.warn .v{color:var(--yellow)}
+  .stat.ok .v{color:var(--green)}
+
+  /* Burndown mini sparkline */
+  .burndown{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:6px}
+  .bd-bar{flex:1;background:var(--ink);border-radius:1.5px;opacity:.7;transition:opacity .15s}
+  .bd-bar.today{background:var(--green);opacity:1}
+  .bd-bar.future{background:var(--line);opacity:1}
+
+  /* ===== BURNDOWN BANNER ===== */
+  .burndown-banner{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .burndown-banner .bb-text{flex:1;min-width:240px}
+  .burndown-banner .bb-title{font-size:14px;font-weight:600;margin-bottom:2px}
+  .burndown-banner .bb-sub{font-size:12px;color:var(--ink-3);line-height:1.45}
+  .burndown-banner .bb-sub b{color:var(--green);font-weight:600}
+  .burndown-banner .bb-meter{
+    flex:1;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;
+    position:relative;min-width:140px;max-width:260px;
+  }
+  .burndown-banner .bb-meter > .fill{
+    height:100%;background:linear-gradient(90deg, var(--ink) 0%, var(--green) 100%);
+    border-radius:4px;
+  }
+  .burndown-banner .bb-meter > .marker{
+    position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);
+    left:80%;border-radius:1px;
+  }
+  .burndown-banner .bb-meter > .marker::after{
+    content:'today';position:absolute;left:50%;transform:translateX(-50%);top:18px;
+    font-size:9px;color:var(--ink);font-family:'Geist Mono',monospace;font-weight:600;
+    white-space:nowrap;
+  }
+  .burndown-banner .bb-pct{
+    font-size:24px;font-weight:600;letter-spacing:-.02em;
+    font-feature-settings:'tnum';color:var(--ink);
+  }
+
+  /* ===== BOARD ===== */
+  .board-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:24px 0 12px;gap:12px;flex-wrap:wrap;
+  }
+  .board-head h2{
+    margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+  }
+  .board-head .controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+  /* Filter chips for board */
+  .board-filters{
+    display:flex;gap:6px;flex-wrap:wrap;
+  }
+  .chip{
+    padding:4px 10px;border:1px solid var(--line);border-radius:20px;
+    background:var(--surface);font-size:11px;color:var(--ink-2);font-weight:500;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .chip:hover{background:var(--surface-2)}
+  .chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .chip svg{width:11px;height:11px}
+
+  /* Scroll hint */
+  .scroll-hint{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace;
+    margin-bottom:8px;padding:4px;
+  }
+  .scroll-hint svg{width:11px;height:11px}
+  @media (min-width:1024px){.scroll-hint{display:none}}
+
+  /* Board scroll container */
+  .board-scroll{
+    display:flex;gap:12px;overflow-x:auto;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    padding-bottom:10px;margin:0 -16px;padding-left:16px;padding-right:16px;
+  }
+  .board-scroll::-webkit-scrollbar{display:none}
+  @media (min-width:1024px){
+    .board-scroll{
+      display:grid;grid-template-columns:repeat(5,1fr);
+      margin:0;padding:0;overflow:visible;
+    }
+  }
+
+  .col{
+    background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-lg);padding:10px;
+    min-width:288px;scroll-snap-align:start;flex-shrink:0;
+    display:flex;flex-direction:column;
+  }
+  @media (min-width:1024px){.col{min-width:0}}
+  .col.active{background:var(--surface-3);border-color:var(--ink-4)}
+
+  .col-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:4px 8px 12px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    font-weight:600;color:var(--ink-3);font-family:'Geist Mono',monospace;
+  }
+  .col-head .name-row{display:flex;align-items:center;gap:6px}
+  .col-head .name-row .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-4)}
+  .col-head.queued .name-row .dot{background:var(--ink-4)}
+  .col-head.progress .name-row .dot{background:var(--yellow);animation:pulse 2s infinite}
+  .col-head.review .name-row .dot{background:var(--blue)}
+  .col-head.blocked .name-row .dot{background:var(--red)}
+  .col-head.done .name-row .dot{background:var(--green)}
+  .col-head .ct{
+    background:var(--surface);padding:2px 8px;border-radius:10px;
+    font-size:10px;color:var(--ink);font-weight:700;min-width:24px;text-align:center;
+  }
+  .col-head .ct.alert{background:var(--red);color:#fff}
+
+  /* CARD */
+  .bcard{
+    background:var(--surface);border:1px solid var(--line);
+    border-left:3px solid var(--line);border-radius:8px;padding:11px 12px;
+    margin-bottom:8px;cursor:pointer;transition:box-shadow .15s, transform .15s;
+    position:relative;
+  }
+  .bcard:hover{box-shadow:0 4px 12px rgba(12,10,9,.06);transform:translateY(-1px)}
+  .bcard.bot{border-left-color:var(--purple)}
+  .bcard.human{border-left-color:var(--green)}
+  .bcard.blocked{border-left-color:var(--red)}
+  .bcard.active-card{
+    border-left-color:var(--yellow);
+    box-shadow:0 0 0 2px var(--yellow-soft), 0 4px 12px rgba(202,138,4,.1);
+  }
+
+  .bcard-head{
+    display:flex;align-items:center;justify-content:space-between;gap:6px;
+    margin-bottom:6px;
+  }
+  .bcard .k{
+    font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);
+    display:flex;align-items:center;gap:6px;
+  }
+  .bcard .k .src-dot{width:5px;height:5px;border-radius:50%}
+  .bcard .k .src-dot.fortify{background:#cc0000}
+  .bcard .k .src-dot.sonatype{background:#1c7ed6}
+  .bcard .k .src-dot.gitlab{background:#fc6d26}
+  .bcard .working-pill{
+    font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;
+    background:var(--yellow);color:var(--ink);font-family:'Geist Mono',monospace;
+    text-transform:uppercase;letter-spacing:.04em;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .bcard .working-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ink);animation:pulse 1.2s infinite}
+
+  .bcard .s{
+    font-size:13px;font-weight:500;line-height:1.4;color:var(--ink);
+    margin-bottom:8px;letter-spacing:-.005em;
+  }
+  .bcard .tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+
+  /* Severity */
+  .sev{
+    font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.04em;
+    font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:4px;
+  }
+  .sev::before{content:'';width:4px;height:4px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .sev-high{background:var(--orange-soft);color:var(--orange)} .sev-high::before{background:var(--orange)}
+  .sev-med{background:var(--yellow-soft);color:var(--yellow)} .sev-med::before{background:var(--yellow)}
+  .sev-low{background:var(--blue-soft);color:var(--blue)} .sev-low::before{background:var(--blue)}
+
+  /* Progress bar */
+  .progress{
+    height:3px;background:var(--surface-2);border-radius:2px;
+    overflow:hidden;margin-top:8px;
+  }
+  .progress > span{display:block;height:100%;background:var(--ink);transition:width .3s}
+  .progress-label{
+    font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+    margin-top:4px;display:flex;justify-content:space-between;
+  }
+
+  /* Footer: avatar + meta */
+  .bcard-foot{
+    display:flex;align-items:center;gap:6px;margin-top:8px;
+    padding-top:8px;border-top:1px solid var(--line-2);
+  }
+  .bcard-foot .meta{
+    font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+    flex:1;display:flex;align-items:center;gap:4px;
+  }
+  .bcard-foot .meta svg{width:10px;height:10px}
+  .av-sm{
+    width:22px;height:22px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;font-weight:700;color:#fff;letter-spacing:-.02em;
+  }
+  .av-sm.bot{background:var(--purple)}
+  .av-sm.bot::before{content:'AI'}
+  .av-sm.human{background:var(--green)}
+
+  /* Block reason pill */
+  .block-reason{
+    font-size:10px;padding:3px 7px;border-radius:5px;font-weight:600;
+    background:var(--red-soft);color:var(--red);
+    font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .block-reason svg{width:10px;height:10px}
+
+  /* SLA mini-bar */
+  .sla-mini{
+    display:flex;align-items:center;gap:6px;margin-top:6px;
+    font-size:10px;font-family:'Geist Mono',monospace;color:var(--ink-3);
+  }
+  .sla-mini .bar{flex:1;height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+  .sla-mini .bar > div{height:100%;border-radius:2px}
+  .sla-mini.ok .bar > div{background:var(--green);width:60%}
+  .sla-mini.warn .bar > div{background:var(--yellow);width:80%}
+  .sla-mini.danger .bar > div{background:var(--red);width:95%}
+
+  /* Add card button */
+  .add-card{
+    background:transparent;border:1px dashed var(--line);
+    border-radius:8px;padding:10px;font-size:11px;color:var(--ink-4);
+    font-family:'Geist Mono',monospace;width:100%;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:border-color .15s, color .15s;
+  }
+  .add-card:hover{border-color:var(--ink-3);color:var(--ink-2)}
+
+  /* ===== TWO-COLUMN PANELS BELOW BOARD ===== */
+  .bottom-panels{
+    display:grid;grid-template-columns:1fr;gap:14px;margin-top:24px;
+  }
+  @media (min-width:1024px){.bottom-panels{grid-template-columns:1.4fr 1fr}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;
+  }
+  .panel-head{
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  }
+  .panel-head h3{margin:0;font-size:14px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .panel-head .sub{font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+
+  /* BLOCKER ROW */
+  .blocker-row{
+    display:grid;grid-template-columns:auto 1fr auto;gap:14px;
+    padding:14px 18px;border-bottom:1px solid var(--line-2);align-items:center;
+  }
+  .blocker-row:last-child{border:none}
+  @media (min-width:640px){
+    .blocker-row{grid-template-columns:auto 1fr auto auto}
+  }
+  .blocker-rank{
+    width:28px;height:28px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Geist Mono',monospace;font-size:12px;font-weight:700;color:var(--ink-3);
+    background:var(--surface-2);
+  }
+  .blocker-row.crit .blocker-rank{background:var(--red-soft);color:var(--red)}
+  .blocker-row.high .blocker-rank{background:var(--orange-soft);color:var(--orange)}
+  .blocker-info .b-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;line-height:1.35}
+  .blocker-info .b-title code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .blocker-info .b-meta{font-size:11px;color:var(--ink-3);line-height:1.5}
+  .blocker-info .b-meta b{color:var(--ink-2);font-weight:500}
+  .blocker-owner{
+    font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+    display:flex;align-items:center;gap:6px;flex-shrink:0;
+  }
+  .blocker-owner .av-sm{margin:0}
+  .blocker-action{flex-shrink:0}
+
+  /* CEREMONY CANDIDATES */
+  .ceremony-row{
+    padding:12px 18px;border-bottom:1px solid var(--line-2);
+    display:flex;align-items:flex-start;gap:12px;
+  }
+  .ceremony-row:last-child{border:none}
+  .cer-tag{
+    font-size:9px;padding:3px 8px;border-radius:4px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;
+    font-family:'Geist Mono',monospace;
+    display:inline-flex;align-items:center;gap:4px;min-width:90px;justify-content:center;
+  }
+  .cer-tag.review{background:var(--blue-soft);color:var(--blue)}
+  .cer-tag.retro{background:var(--purple-soft);color:var(--purple)}
+  .cer-tag.refine{background:var(--surface-2);color:var(--ink-2)}
+  .cer-body{flex:1;min-width:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+  .cer-body b{color:var(--ink);font-weight:600}
+  .cer-body code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .cer-body .cer-sub{font-size:11px;color:var(--ink-3);margin-top:3px;display:block;font-family:'Geist Mono',monospace}
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-bottom))}
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;border-radius:8px;min-height:var(--tap);position:relative}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+  <nav class="top-nav">
+    <button class="top-tab">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab">Intake <span class="count">14</span></button>
+    <button class="top-tab active">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+  <div class="top-right">
+    <div class="agent-pill"><span class="pulse-dot"></span><span class="label">Agent working</span></div>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn" onclick="toggleTheme()"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>sprint<span class="url-prim">&id=</span>sprint-7</span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-h">
+    <div>
+      <div class="sprint-title">
+        <h1>Sprint 7 — Hardening</h1>
+        <button class="pick">switch sprint <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      </div>
+      <div class="sprint-meta">
+        <span class="dates">May 4 – 17, 2026</span>
+        <span class="day-pill">Day 8 of 10</span>
+        <span style="font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace">· 12 tickets · 7 services</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        Burndown
+      </button>
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+        Members
+      </button>
+      <button class="btn primary sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        End sprint
+      </button>
+    </div>
+  </div>
+
+  <!-- BURNDOWN BANNER -->
+  <div class="burndown-banner">
+    <div class="bb-text">
+      <div class="bb-title">On pace · 6 of 12 done · <b style="color:var(--green)">+1 ahead of plan</b></div>
+      <div class="bb-sub">Sprint capacity 40h · used 28h · remaining 2 working days. Velocity tracking 32 points (planned 30).</div>
+    </div>
+    <div class="bb-meter">
+      <div class="fill"></div>
+      <div class="marker"></div>
+    </div>
+    <div class="bb-pct">72%</div>
+  </div>
+
+  <!-- SPRINT STATS -->
+  <div class="stats-row">
+    <div class="stat ok">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Done
+      </div>
+      <div class="v">6 <small>/ 12</small></div>
+    </div>
+    <div class="stat warn">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        In flight
+      </div>
+      <div class="v">3</div>
+    </div>
+    <div class="stat danger">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Blocked
+      </div>
+      <div class="v">2</div>
+    </div>
+    <div class="stat warn">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        At risk
+      </div>
+      <div class="v">1</div>
+    </div>
+    <div class="stat">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Velocity
+      </div>
+      <div class="v">32 <small>pts</small></div>
+    </div>
+    <div class="stat">
+      <div class="l">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Agent tokens
+      </div>
+      <div class="v">142k <small>/ 500k</small></div>
+    </div>
+  </div>
+
+  <!-- BOARD HEAD -->
+  <div class="board-head">
+    <h2>Board · Sprint 7</h2>
+    <div class="controls">
+      <div class="board-filters">
+        <button class="chip active">All</button>
+        <button class="chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/></svg>
+          Mine
+        </button>
+        <button class="chip">Critical</button>
+        <button class="chip">Agent-owned</button>
+        <button class="chip">Human-owned</button>
+      </div>
+      <button class="btn sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add ticket
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile scroll hint -->
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Swipe to see all columns
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+
+  <!-- BOARD COLUMNS -->
+  <div class="board-scroll">
+
+    <!-- QUEUED -->
+    <div class="col">
+      <div class="col-head queued">
+        <div class="name-row"><span class="dot"></span><span>Queued</span></div>
+        <span class="ct">3</span>
+      </div>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1748</code></span>
+        </div>
+        <div class="s">Weak random in token generator</div>
+        <div class="tags"><span class="sev sev-high">High</span></div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~3h</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot gitlab"></span><code>SEC-1751</code></span>
+        </div>
+        <div class="s">Hardcoded JDBC password in test config</div>
+        <div class="tags"><span class="sev sev-med">Med</span></div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~1h</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot sonatype"></span><code>SEC-1752</code></span>
+        </div>
+        <div class="s">CVE-2024-1234 in jackson-databind · upgrade 2.13.4 → 2.16.1</div>
+        <div class="tags"><span class="sev sev-med">Med</span></div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~2h</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <button class="add-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        add ticket
+      </button>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div class="col active">
+      <div class="col-head progress">
+        <div class="name-row"><span class="dot"></span><span>In progress</span></div>
+        <span class="ct">1</span>
+      </div>
+      <article class="bcard bot active-card">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1747</code></span>
+          <span class="working-pill">Working</span>
+        </div>
+        <div class="s">Missing CSRF token on /api/admin/* endpoints</div>
+        <div class="tags">
+          <span class="sev sev-high">High</span>
+        </div>
+        <div class="progress"><span style="width:62%"></span></div>
+        <div class="progress-label"><span>Step 4 of 6 · running tests</span><span>62%</span></div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 18m elapsed</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <button class="add-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        add ticket
+      </button>
+    </div>
+
+    <!-- IN REVIEW -->
+    <div class="col">
+      <div class="col-head review">
+        <div class="name-row"><span class="dot"></span><span>In review</span></div>
+        <span class="ct alert">2</span>
+      </div>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1745</code></span>
+        </div>
+        <div class="s">SQL injection in OrderRepository.findByCustomer</div>
+        <div class="tags">
+          <span class="sev sev-crit">Critical</span>
+          <span style="font-size:9px;background:var(--yellow-soft);color:var(--yellow);padding:2px 6px;border-radius:4px;font-weight:600;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em">@you</span>
+        </div>
+        <div class="sla-mini ok">
+          <span>SLA</span>
+          <div class="bar"><div></div></div>
+          <span>6d left</span>
+        </div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> 3 of 4 approved</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1743</code></span>
+        </div>
+        <div class="s">XSS in dashboard search field (escaped output)</div>
+        <div class="tags"><span class="sev sev-med">Med</span></div>
+        <div class="sla-mini warn">
+          <span>SLA</span>
+          <div class="bar"><div></div></div>
+          <span>2d left</span>
+        </div>
+        <div class="bcard-foot">
+          <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> 2 of 3 approved</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <button class="add-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        add ticket
+      </button>
+    </div>
+
+    <!-- BLOCKED -->
+    <div class="col">
+      <div class="col-head blocked">
+        <div class="name-row"><span class="dot"></span><span>Blocked</span></div>
+        <span class="ct alert">2</span>
+      </div>
+      <article class="bcard bot blocked">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1740</code></span>
+        </div>
+        <div class="s">XSS in legacy JSP report viewer</div>
+        <div class="tags">
+          <span class="sev sev-high">High</span>
+          <span class="block-reason">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            No playbook
+          </span>
+        </div>
+        <div class="bcard-foot">
+          <span class="meta">→ engineering epic</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard human blocked">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1746</code></span>
+        </div>
+        <div class="s">Weak crypto in session token signing</div>
+        <div class="tags">
+          <span class="sev sev-crit">Critical</span>
+          <span class="block-reason">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Waiting 4d
+          </span>
+        </div>
+        <div class="sla-mini danger">
+          <span>SLA</span>
+          <div class="bar"><div></div></div>
+          <span>1d left</span>
+        </div>
+        <div class="bcard-foot">
+          <span class="meta">@alice approval pending</span>
+          <div class="av-sm human">A</div>
+        </div>
+      </article>
+      <button class="add-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        add ticket
+      </button>
+    </div>
+
+    <!-- DONE -->
+    <div class="col">
+      <div class="col-head done">
+        <div class="name-row"><span class="dot"></span><span>Done</span></div>
+        <span class="ct">6</span>
+      </div>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1742</code></span>
+        </div>
+        <div class="s">Path traversal in FileExportController</div>
+        <div class="tags"><span class="sev sev-high">High</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · today 11:03</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1738</code></span>
+        </div>
+        <div class="s">Weak SHA-1 in audit log signing</div>
+        <div class="tags"><span class="sev sev-med">Med</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · today 10:15</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot gitlab"></span><code>SEC-1734</code></span>
+        </div>
+        <div class="s">Hardcoded API key in PaymentService</div>
+        <div class="tags"><span class="sev sev-high">High</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · today 09:42</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1735</code></span>
+        </div>
+        <div class="s">Hardcoded secret in email template config</div>
+        <div class="tags"><span class="sev sev-med">Med</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · yesterday</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard bot">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1729</code></span>
+        </div>
+        <div class="s">SQL injection in UserController.search</div>
+        <div class="tags"><span class="sev sev-crit">Critical</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · 2 days ago</span>
+          <div class="av-sm bot"></div>
+        </div>
+      </article>
+      <article class="bcard human">
+        <div class="bcard-head">
+          <span class="k"><span class="src-dot fortify"></span><code>SEC-1741</code></span>
+        </div>
+        <div class="s">Session fixation in login flow</div>
+        <div class="tags"><span class="sev sev-high">High</span></div>
+        <div class="bcard-foot">
+          <span class="meta">merged · 2 days ago</span>
+          <div class="av-sm human">A</div>
+        </div>
+      </article>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM PANELS -->
+  <div class="bottom-panels">
+
+    <!-- SPRINT BLOCKERS -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;color:var(--red)"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          Sprint blockers
+        </h3>
+        <span class="sub">ranked by impact</span>
+      </div>
+
+      <div class="blocker-row crit">
+        <span class="blocker-rank">1</span>
+        <div class="blocker-info">
+          <div class="b-title"><code>SEC-1746</code> · Crypto change waiting 4 days on approval</div>
+          <div class="b-meta">SLA 1 day left · <b>critical</b> · backup approver path not configured · risk: rolls into Sprint 8</div>
+        </div>
+        <div class="blocker-owner">
+          <div class="av-sm human">A</div>
+          <span>@alice</span>
+        </div>
+        <button class="btn sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Ping
+        </button>
+      </div>
+
+      <div class="blocker-row high">
+        <span class="blocker-rank">2</span>
+        <div class="blocker-info">
+          <div class="b-title"><code>SEC-1740</code> · XSS in legacy JSP — no playbook exists</div>
+          <div class="b-meta">Agent recommends <b>engineering epic</b> instead · same pattern in 6 JSPs · refactor candidate</div>
+        </div>
+        <div class="blocker-owner">
+          <span>unassigned</span>
+        </div>
+        <button class="btn sm">Action</button>
+      </div>
+
+      <div class="blocker-row">
+        <span class="blocker-rank">3</span>
+        <div class="blocker-info">
+          <div class="b-title"><code>SEC-1743</code> · XSS dashboard fix · SLA 2 days left</div>
+          <div class="b-meta">Reviewer agent + J. Reviewer ✓ · waiting on <b>@bob</b> · last seen yesterday</div>
+        </div>
+        <div class="blocker-owner">
+          <div class="av-sm human" style="background:var(--blue)">B</div>
+          <span>@bob</span>
+        </div>
+        <button class="btn sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Ping
+        </button>
+      </div>
+    </div>
+
+    <!-- CEREMONY CANDIDATES -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Ceremony candidates
+        </h3>
+        <span class="sub">Friday · 14:00</span>
+      </div>
+
+      <div class="ceremony-row">
+        <span class="cer-tag review">For review</span>
+        <div class="cer-body">
+          Demo <code>SEC-1729</code> — agent fixed a critical SQL injection end-to-end with no human edits
+          <span class="cer-sub">good story for stakeholders · shows T1 auto-merge tier working</span>
+        </div>
+      </div>
+
+      <div class="ceremony-row">
+        <span class="cer-tag retro">For retro</span>
+        <div class="cer-body">
+          Promote <code>spring-csrf</code> playbook to <b>T1 auto-merge tier</b>
+          <span class="cer-sub">5 uses · 100% success · low risk pattern</span>
+        </div>
+      </div>
+
+      <div class="ceremony-row">
+        <span class="cer-tag retro">For retro</span>
+        <div class="cer-body">
+          Process gap: <code>SEC-1746</code> waited 4 days for approval
+          <span class="cer-sub">need backup approver for critical crypto changes</span>
+        </div>
+      </div>
+
+      <div class="ceremony-row">
+        <span class="cer-tag refine">For refinement</span>
+        <div class="cer-body">
+          Draft <code>spring-jsp-xss</code> playbook
+          <span class="cer-sub">3 findings blocked by its absence · @alice to draft by Wed</span>
+        </div>
+      </div>
+
+      <div class="ceremony-row">
+        <span class="cer-tag refine">For refinement</span>
+        <div class="cer-body">
+          Engineering ticket: JSP → Thymeleaf migration in admin-portal
+          <span class="cer-sub">unblocks 6 XSS findings · platform team owns</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

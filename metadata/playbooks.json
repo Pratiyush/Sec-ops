@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "playbooks": [
+    {
+      "id": "spring-sql-injection",
+      "version": "2.3",
+      "tier": "T1",
+      "uses": 12,
+      "successRate": 1.0,
+      "cwes": ["CWE-89"],
+      "stack": ["java", "spring", "jpa"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2",
+      "description": "Replaces concatenated SQL with parameterised queries; adds regression probes."
+    },
+    {
+      "id": "spring-csrf",
+      "version": "1.2",
+      "tier": "T2",
+      "promotionCandidate": "T1",
+      "uses": 5,
+      "successRate": 1.0,
+      "cwes": ["CWE-352"],
+      "stack": ["java", "spring-security"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2",
+      "description": "Wires CSRF token filter + double-submit cookie; 5/5 shadow runs green, ready for T1 graduation."
+    },
+    {
+      "id": "secret-rotation",
+      "version": "1.0",
+      "tier": "T2",
+      "uses": 3,
+      "successRate": 0.67,
+      "cwes": ["CWE-798", "CWE-321"],
+      "stack": ["any"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2",
+      "description": "Rotates hardcoded secrets into vault references; coordinates with deploy pipeline."
+    },
+    {
+      "id": "xss-output-encoding",
+      "version": "1.4",
+      "tier": "T1",
+      "uses": 8,
+      "successRate": 0.88,
+      "cwes": ["CWE-79"],
+      "stack": ["react", "thymeleaf"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2"
+    },
+    {
+      "id": "dep-upgrade-minor",
+      "version": "3.0",
+      "tier": "T0",
+      "uses": 64,
+      "successRate": 0.97,
+      "cwes": ["CVE-*"],
+      "stack": ["any"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2"
+    },
+    {
+      "id": "open-redirect-allowlist",
+      "version": "0.9",
+      "tier": "T3",
+      "uses": 1,
+      "successRate": 0.0,
+      "cwes": ["CWE-601"],
+      "stack": ["spring"],
+      "owners": ["agent:DEV"],
+      "policy": "secops-policy@v3.2",
+      "description": "Experimental; gated to needs-review."
+    }
+  ]
+}

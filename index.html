@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecOps Workbench · 21-screen design</title>
+<meta name="description" content="SecOps Workbench design exploration — 21 screens covering remediation, intake, sprint, ceremonies, policy and overlays."/>
+<meta name="secops:screen-id" content="00"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="SecOps Workbench · 21-screen design"/>
+<meta property="og:description" content="SecOps Workbench design exploration — 21 screens covering remediation, intake, sprint, ceremonies, policy and overlays."/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --teal:#0d9488; --teal-soft:#ccfbf1;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red-soft:rgba(239,68,68,.18); --orange-soft:rgba(234,88,12,.18);
+    --yellow-soft:rgba(202,138,4,.18); --green-soft:rgba(34,197,94,.18);
+    --blue-soft:rgba(37,99,235,.18); --purple-soft:rgba(139,92,246,.18);
+    --teal-soft:rgba(20,184,166,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;padding:32px 20px 64px}
+  code{font-family:'Geist Mono',monospace;font-size:.92em}
+  .wrap{max-width:1100px;margin:0 auto}
+
+  /* HEADER */
+  header{margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .bm{width:38px;height:38px;border-radius:10px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .bt{font-weight:600;font-size:17px;letter-spacing:-.015em}
+  .bt small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:3px;font-family:'Geist Mono',monospace}
+  h1{font-size:32px;font-weight:600;margin:0 0 10px;letter-spacing:-.025em;line-height:1.15}
+  .lede{color:var(--ink-3);font-size:15px;line-height:1.6;margin:0 0 20px;max-width:62ch}
+  .lede code{background:var(--surface-2);padding:1px 6px;border-radius:4px;color:var(--ink-2)}
+  .lede b{color:var(--ink-2);font-weight:600}
+
+  /* SUMMARY STATS */
+  .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:24px}
+  @media (max-width:640px){.summary{grid-template-columns:repeat(2,1fr)}}
+  .s{padding:14px 16px;background:var(--surface)}
+  .s .v{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1;font-feature-settings:'tnum';color:var(--ink)}
+  .s .v.ok{color:var(--green)}
+  .s .l{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:6px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* NARRATIVE CALLOUT */
+  .narr{margin-top:28px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;gap:16px;align-items:flex-start}
+  .narr-i{width:42px;height:42px;border-radius:12px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .narr-i svg{width:20px;height:20px}
+  .narr-t{flex:1}
+  .narr-l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px}
+  .narr-t h3{margin:0 0 6px;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .narr-t p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+  .narr-t p code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11.5px;color:var(--ink-2)}
+  .narr-t p b{color:var(--ink);font-weight:600}
+
+  /* SECTION HEADERS */
+  .section{margin-top:36px}
+  .section-h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .section-h .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .section-h .ct{background:var(--surface-2);padding:2px 7px;border-radius:5px;color:var(--ink-2);font-weight:700}
+
+  /* CARD GRID */
+  .grid{display:grid;grid-template-columns:1fr;gap:10px}
+  @media (min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+  @media (min-width:1024px){.grid{grid-template-columns:1fr 1fr 1fr}}
+
+  a.card{
+    display:flex;flex-direction:column;gap:6px;
+    padding:15px;background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s;
+  }
+  a.card:hover{border-color:var(--ink-4);transform:translateY(-1px)}
+  .ch{display:flex;align-items:center;gap:10px}
+  .num{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0}
+  .card.tab .num{background:var(--blue-soft);color:var(--blue)}
+  .card.top .num{background:var(--green-soft);color:var(--green)}
+  .card.draw .num{background:var(--purple-soft);color:var(--purple)}
+  .card.over .num{background:var(--orange-soft);color:var(--orange)}
+  .ct-i{flex:1;display:flex;flex-direction:column;gap:0}
+  .ct-title{font-size:14px;font-weight:600;letter-spacing:-.005em;color:var(--ink);line-height:1.3}
+  .ct-tag{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--surface-2);color:var(--ink-3);font-weight:700;font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+  .ct-desc{font-size:12px;color:var(--ink-3);line-height:1.5}
+  .ct-desc code{background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* policy pill on relevant cards */
+  .pol-pill{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;padding:2px 7px;border-radius:4px;background:var(--surface-2);color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;align-self:flex-start}
+  .pol-pill svg{width:9px;height:9px}
+
+  /* SEC-1745 highlight */
+  .card.thread{border-color:var(--ink);box-shadow:0 0 0 1px var(--surface-3)}
+  .card.thread .ct-tag.thread{background:var(--ink);color:var(--bg)}
+
+  /* POLICY LOOP STRIP */
+  .loops{margin-top:14px;display:grid;grid-template-columns:1fr;gap:10px}
+  @media (min-width:640px){.loops{grid-template-columns:1fr 1fr}}
+  .loop{padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;border-left:3px solid var(--blue)}
+  .loop.green{border-left-color:var(--green)}
+  .loop-l{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:700;font-family:'Geist Mono',monospace;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .loop-l svg{width:10px;height:10px}
+  .loop h4{margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:-.005em;line-height:1.3}
+  .loop p{margin:0;font-size:11.5px;color:var(--ink-3);line-height:1.5;font-family:'Geist Mono',monospace}
+  .loop p b{color:var(--ink-2);font-weight:600}
+
+  /* FOOTER */
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="bm">SO</div>
+      <div class="bt">SecOps Workbench<small>Design exploration · 21 of 21 screens · May 2026</small></div>
+    </div>
+    <h1>Agentic security remediation, end-to-end</h1>
+    <p class="lede">Fortify · Sonatype · Jira · GitLab feed an agentic Scrum team that triages, fixes, and ships under policy. Built on <b>LangChain DeepAgents</b> with Git-versioned playbooks. Every screen is governed by <code>secops-policy@v3.2</code>.</p>
+
+    <div class="summary">
+      <div class="s"><div class="v">21</div><div class="l">Screens</div></div>
+      <div class="s"><div class="v">9</div><div class="l">Pages</div></div>
+      <div class="s"><div class="v">9</div><div class="l">Drawers</div></div>
+      <div class="s"><div class="v">3</div><div class="l">Overlays</div></div>
+      <div class="s"><div class="v ok">100%</div><div class="l">Complete</div></div>
+    </div>
+
+    <div class="narr">
+      <div class="narr-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="narr-t">
+        <div class="narr-l">Narrative thread</div>
+        <h3>SEC-1745 · critical SQL injection in <code>OrderRepository</code></h3>
+        <p>Day 8 of Sprint 7. Alice has one ticket waiting for her final approval. Every screen points toward — or follows from — this single decision. The story enters at <b>#07 Intake</b>, reaches its crux at <b>#19 Approval modal</b>, and closes with the success toast at <b>#21</b>. <b>Bordered cards</b> below mark the 13 screens where SEC-1745 appears directly.</p>
+      </div>
+    </div>
+
+    <div class="loops">
+      <div class="loop">
+        <div class="loop-l">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Policy loop · backup approver
+        </div>
+        <h4>Surfaced &rarr; pending &rarr; validated &rarr; live</h4>
+        <p>Urgent action in <b>#13</b> &rarr; pending T4 rule in <b>#16</b> &rarr; validated against Sprint 6 in <b>#17</b> &rarr; <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:10.5px">v3.3</code> promoted in <b>#21</b>.</p>
+      </div>
+      <div class="loop green">
+        <div class="loop-l">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Promotion loop · spring-csrf to T1
+        </div>
+        <h4>5 of 5 shadow runs &rarr; ready to graduate</h4>
+        <p>Promote action in <b>#13</b> &rarr; green-bordered candidate card in <b>#14</b> &rarr; 100% success in <b>#15</b> &rarr; shadow T1 pilot done in <b>#17</b>.</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- REMEDIATION CLUSTER -->
+  <div class="section">
+    <div class="section-h">Remediation · contextual tabs <span class="ct">6</span><span class="ln"></span></div>
+    <div class="grid">
+
+      <a class="card tab thread" href="01-remediation.html">
+        <div class="ch"><span class="num">01</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Remediation shell</div>
+        <div class="ct-desc">Top bar, URL bar, 7-segment stage, contextual tab strip. The frame every tab inherits.</div>
+      </a>
+
+      <a class="card tab thread" href="02-overview.html">
+        <div class="ch"><span class="num">02</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Overview tab</div>
+        <div class="ct-desc">Next-action banner, closure blockers, acceptance criteria. The "what's pending" view.</div>
+      </a>
+
+      <a class="card tab thread" href="03-evidence.html">
+        <div class="ch"><span class="num">03</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Evidence tab</div>
+        <div class="ct-desc">12 artifacts across 5 sources · grouped Scanner / Code / Tests / Policy / Reasoning.</div>
+      </a>
+
+      <a class="card tab thread" href="04-human-gates.html">
+        <div class="ch"><span class="num">04</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Human Gates tab</div>
+        <div class="ct-desc">Open / passed / future gates. Approver stacks, pre-check console, keyboard hints.</div>
+      </a>
+
+      <a class="card tab thread" href="05-regression.html">
+        <div class="ch"><span class="num">05</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Regression tab</div>
+        <div class="ct-desc">Class A verdict, before/after deltas, 6-check matrix, side-effect probes.</div>
+      </a>
+
+      <a class="card tab thread" href="06-verdict.html">
+        <div class="ch"><span class="num">06</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Verdict tab</div>
+        <div class="ct-desc">Recommendation hero, approver votes with quoted comments, residual risk, rollback plan.</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- TOP-LEVEL PAGES -->
+  <div class="section">
+    <div class="section-h">Top-level pages <span class="ct">3</span><span class="ln"></span></div>
+    <div class="grid">
+      <a class="card top" href="07-intake.html">
+        <div class="ch"><span class="num">07</span><span class="ct-tag">page</span></div>
+        <div class="ct-title">Intake</div>
+        <div class="ct-desc">21 new findings · Triage Agent verdicts · 14 can-fix, 3 needs review, 4 too-complex.</div>
+      </a>
+      <a class="card top thread" href="08-sprint.html">
+        <div class="ch"><span class="num">08</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Sprint</div>
+        <div class="ct-desc">5-column kanban · 12 tickets · day 8/10 · 32 velocity points · 142k/500k tokens.</div>
+      </a>
+      <a class="card top thread" href="09-agentbook.html">
+        <div class="ch"><span class="num">09</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">AgentBook</div>
+        <div class="ct-desc">Chronological scrum thread · day-grouped · agents and humans post inline.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- UTILITY DRAWERS -->
+  <div class="section">
+    <div class="section-h">Utility drawers · slide-in right <span class="ct">9</span><span class="ln"></span></div>
+    <div class="grid">
+
+      <a class="card draw" href="10-integrations.html">
+        <div class="ch"><span class="num">10</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Integrations</div>
+        <div class="ct-desc">7 sources · Fortify · Sonatype · Jira (degraded) · GitLab · Modal · LangSmith · Slack.</div>
+      </a>
+
+      <a class="card draw thread" href="11-agent-registry.html">
+        <div class="ch"><span class="num">11</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Agent Registry</div>
+        <div class="ct-desc">5 agents · SCN · TRG · DEV (T1, working) · REV · ORC. Permissions inspectable, autonomy tiers visible.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>secops-policy@v3.2</span>
+      </a>
+
+      <a class="card draw" href="12-ceremonies.html">
+        <div class="ch"><span class="num">12</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Ceremonies</div>
+        <div class="ct-desc">Sprint 7 Review &amp; Retro Friday · 5 agenda items · past ceremonies with decisions &amp; actions.</div>
+      </a>
+
+      <a class="card draw" href="13-retro-backlog.html">
+        <div class="ch"><span class="num">13</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Retro improvement backlog</div>
+        <div class="ct-desc">9 action items · 4 shipped · 2 in progress · urgent: backup approver for crypto.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy proposals</span>
+      </a>
+
+      <a class="card draw thread" href="14-playbooks.html">
+        <div class="ch"><span class="num">14</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Playbooks &amp; Skills</div>
+        <div class="ct-desc">6 playbooks · <code>spring-sql-injection@2.3</code> (T1, 12 uses) · <code>spring-csrf</code> ready for T1 promo.</div>
+      </a>
+
+      <a class="card draw" href="15-metrics.html">
+        <div class="ch"><span class="num">15</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Metrics</div>
+        <div class="ct-desc">MTTR 14h 22m · 98% DEV merge · token budget 28% · velocity trend across 4 sprints.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy signals</span>
+      </a>
+
+      <a class="card draw" href="16-policy.html">
+        <div class="ch"><span class="num">16</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Production policy</div>
+        <div class="ct-desc">14 rules across autonomy / recovery / audit / release gates · 1 pending (backup approver) · 4-version history.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy editor</span>
+      </a>
+
+      <a class="card draw" href="17-pilot-replay.html">
+        <div class="ch"><span class="num">17</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Pilot &amp; Replay</div>
+        <div class="ct-desc">What-if sandbox · Sprint 6 replayed under v3.2 + backup-approver · 5 tickets re-routed.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy validation</span>
+      </a>
+
+      <a class="card draw" href="18-settings.html">
+        <div class="ch"><span class="num">18</span><span class="ct-tag">drawer</span></div>
+        <div class="ct-title">Settings</div>
+        <div class="ct-desc">Personal preferences · 6 sections · 2 policy-locked toggles · clear separation from org policy.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy-bounded</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- OVERLAYS -->
+  <div class="section">
+    <div class="section-h">Overlays <span class="ct">3</span><span class="ln"></span></div>
+    <div class="grid">
+
+      <a class="card over thread" href="19-approval-modal.html">
+        <div class="ch"><span class="num">19</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Approval modal</div>
+        <div class="ct-desc">Centered · critical · diff preview required by policy · 3 of 4 approvers signed · ⌘+↵ to merge.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>policy-enforced</span>
+      </a>
+
+      <a class="card over thread" href="20-search.html">
+        <div class="ch"><span class="num">20</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Search overlay</div>
+        <div class="ct-desc">Spotlight · ⌘+K · 9 results for "1745" across tickets, playbooks, ceremonies, people, commands.</div>
+      </a>
+
+      <a class="card over thread" href="21-toasts.html">
+        <div class="ch"><span class="num">21</span><span class="ct-tag thread">SEC-1745</span></div>
+        <div class="ct-title">Toast notifications</div>
+        <div class="ct-desc">Bottom-right stack · 4 variants · merge confirm, policy promotion, budget warn, auto-rollback.</div>
+        <span class="pol-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>v3.3 promoted</span>
+      </a>
+
+    </div>
+  </div>
+
+  <footer>
+    <span>Geist · stone neutrals · light + dark mode</span>
+    <span>21 / 21 · final</span>
+  </footer>
+
+</div>
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+</script>
+</body>
+</html>

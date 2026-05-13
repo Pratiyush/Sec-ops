@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://secops.local/schema/policy.schema.json",
+  "title": "Policy manifest",
+  "type": "object",
+  "required": ["version", "current", "groups"],
+  "properties": {
+    "version": { "type": "string" },
+    "current": { "type": "string" },
+    "pending": { "type": "string" },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["version", "promotedAt", "status"],
+        "properties": {
+          "version":    { "type": "string" },
+          "promotedAt": { "type": "string", "format": "date" },
+          "status":     { "type": "string", "enum": ["current", "archived", "pending"] }
+        }
+      }
+    },
+    "groups": {
+      "type": "object",
+      "propertyNames": { "enum": ["autonomy", "recovery", "audit", "release-gates"] },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "rule", "status"],
+          "properties": {
+            "id":     { "type": "string" },
+            "rule":   { "type": "string" },
+            "status": { "type": "string", "enum": ["live", "pending", "archived"] },
+            "introducedIn": { "type": "string" },
+            "rationale":    { "type": "string" }
+          }
+        }
+      }
+    },
+    "stats": { "type": "object" }
+  }
+}

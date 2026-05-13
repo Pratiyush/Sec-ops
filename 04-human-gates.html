@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Human Gates · Remediation · SecOps</title>
+<meta name="description" content="Human Gates tab — open / passed / future gates with approver stacks and pre-check console."/>
+<meta name="secops:screen-id" content="04"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Human Gates · Remediation · SecOps"/>
+<meta property="og:description" content="Human Gates tab — open / passed / future gates with approver stacks and pre-check console."/>
+<meta name="secops:narrative" content="SEC-1745"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03';padding-bottom:calc(72px + var(--safe-bottom))}
+  @media (min-width:1024px){body{padding-bottom:0}}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* SHARED SHELL */
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  .menu-btn{width:var(--tap);height:var(--tap);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .menu-btn:hover{background:var(--surface-2)}
+  @media (min-width:1024px){.menu-btn{display:none}}
+  .menu-btn svg{width:20px;height:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  @media (max-width:520px){.brand-text small{display:none}}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:8px}
+  .top-tab:hover{color:var(--ink);background:var(--surface-2)}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-tab .count{background:var(--ink);color:var(--bg);font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600;font-family:'Geist Mono',monospace;min-width:18px;text-align:center}
+  .top-tab .count.urgent{background:var(--red)}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .agent-pill .label{display:none}
+  @media (min-width:768px){.agent-pill .label{display:inline}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn svg{width:18px;height:18px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  .url-bar{background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 16px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap}
+  .url-bar::-webkit-scrollbar{display:none}
+  .url-bar svg{width:12px;height:12px;flex-shrink:0;opacity:.6}
+  .url-bar .url-prim{color:var(--ink-2);font-weight:500}
+  .url-bar .url-share{margin-left:auto;flex-shrink:0;color:var(--ink-3);padding:2px 8px;border-radius:4px;font-size:11px}
+  .url-bar .url-share:hover{background:var(--surface-3);color:var(--ink)}
+
+  .main{max-width:1180px;margin:0 auto;padding:18px 16px}
+  @media (min-width:1024px){.main{padding:28px 28px 80px}}
+
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .page-header .ids{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-3);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .page-header .ids code{background:var(--surface-2);padding:2px 7px;border-radius:4px;color:var(--ink-2)}
+  h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:-.02em;line-height:1.25}
+  @media (min-width:640px){h1{font-size:26px}}
+  .header-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .sev{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+  .sev::before{content:'';width:5px;height:5px;border-radius:50%}
+  .sev-crit{background:var(--red-soft);color:var(--red)} .sev-crit::before{background:var(--red)}
+  .stage-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;background:var(--surface-2);color:var(--ink-2)}
+  .page-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.9}
+  .btn.danger{background:var(--surface);color:var(--red);border-color:var(--red)}
+  .btn.danger:hover{background:var(--red-soft)}
+  .btn svg{width:14px;height:14px}
+  .btn.sm{padding:6px 10px;font-size:12px;min-height:32px}
+
+  .stage-bar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px}
+  .stage-bar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+  .stage-bar-head .now-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace}
+  .stage-bar-head .now-value{font-size:15px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+  .stage-progress{font-size:12px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .stage-track{display:flex;gap:4px}
+  .stage-pill{flex:1;height:6px;background:var(--surface-2);border-radius:3px;position:relative;cursor:pointer}
+  .stage-pill.done{background:var(--ink)}
+  .stage-pill.now{background:linear-gradient(90deg,var(--ink) 60%,var(--surface-2) 60%)}
+  .stage-pill-labels{display:flex;gap:4px;margin-top:8px}
+  .stage-pill-labels span{flex:1;font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+  .stage-pill-labels span.now{color:var(--ink);font-weight:600}
+  .stage-pill-labels span.done{color:var(--ink-2)}
+
+  .ctx-tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ctx-tabs::-webkit-scrollbar{display:none}
+  .ctx-tab{padding:9px 14px;border-radius:7px;font-size:13px;color:var(--ink-3);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .ctx-tab:hover{color:var(--ink)}
+  .ctx-tab.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(12,10,9,.05)}
+  .ctx-tab .badge{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--surface-3);color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .ctx-tab.active .badge{background:var(--ink);color:var(--bg)}
+  .ctx-tab .badge.alert{background:var(--red);color:#fff}
+
+  /* ===================== HUMAN GATES SPECIFIC ===================== */
+
+  /* Intro row */
+  .hg-intro{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;margin-bottom:18px;
+  }
+  .hg-intro .lede{color:var(--ink-3);font-size:13px;line-height:1.5;margin:0;max-width:600px}
+
+  /* Sub-tabs (Open / Passed / All) */
+  .hg-subtabs{
+    display:flex;gap:4px;flex-wrap:wrap;
+  }
+  .hg-subtab{
+    padding:6px 12px;border-radius:6px;font-size:12px;
+    background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
+    font-weight:500;display:inline-flex;align-items:center;gap:6px;
+  }
+  .hg-subtab:hover{background:var(--surface-2)}
+  .hg-subtab.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .hg-subtab .ct{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--surface-2);color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:600}
+  .hg-subtab.active .ct{background:rgba(255,255,255,.15);color:var(--bg)}
+
+  /* Section heading */
+  .hg-section-head{
+    display:flex;align-items:center;gap:8px;margin:24px 0 10px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+  }
+  .hg-section-head:first-child{margin-top:0}
+  .hg-section-head .line{flex:1;height:1px;background:var(--line);margin-left:8px}
+
+  /* GATE CARD */
+  .gate{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;
+    position:relative;
+  }
+  .gate.open{
+    border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow);
+  }
+  .gate.urgent{
+    border-color:var(--red);box-shadow:0 0 0 1px var(--red);
+  }
+  .gate.passed{opacity:.92}
+
+  .gate-strip{
+    height:3px;width:100%;
+  }
+  .gate.open .gate-strip{background:var(--yellow)}
+  .gate.urgent .gate-strip{background:var(--red)}
+  .gate.passed .gate-strip{background:var(--green)}
+  .gate.future .gate-strip{background:var(--line)}
+
+  .gate-head{
+    padding:16px 18px;display:flex;align-items:flex-start;gap:14px;
+    border-bottom:1px solid var(--line-2);
+  }
+  .gate-icon{
+    width:44px;height:44px;border-radius:11px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .gate.open .gate-icon{background:var(--yellow-soft);color:var(--yellow)}
+  .gate.urgent .gate-icon{background:var(--red-soft);color:var(--red)}
+  .gate.passed .gate-icon{background:var(--green-soft);color:var(--green)}
+  .gate.future .gate-icon{background:var(--surface-2);color:var(--ink-3)}
+  .gate-icon svg{width:22px;height:22px}
+
+  .gate-info{flex:1;min-width:0}
+  .gate-info .gate-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .gate-info h3{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .gate-info .gate-sub{font-size:12px;color:var(--ink-3);line-height:1.5;margin:4px 0 0}
+
+  .gate-state{
+    font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .gate-state::before{content:'';width:5px;height:5px;border-radius:50%}
+  .gate.open .gate-state{background:var(--yellow-soft);color:var(--yellow)} .gate.open .gate-state::before{background:var(--yellow)}
+  .gate.urgent .gate-state{background:var(--red-soft);color:var(--red)} .gate.urgent .gate-state::before{background:var(--red)}
+  .gate.passed .gate-state{background:var(--green-soft);color:var(--green)} .gate.passed .gate-state::before{background:var(--green)}
+  .gate.future .gate-state{background:var(--surface-2);color:var(--ink-3)} .gate.future .gate-state::before{background:var(--ink-4)}
+
+  .gate-meta-row{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin-top:10px;font-size:12px;color:var(--ink-3);
+  }
+  .gate-meta-row .meta-item{display:flex;align-items:center;gap:5px}
+  .gate-meta-row .meta-item svg{width:13px;height:13px;color:var(--ink-4)}
+  .gate-meta-row .meta-item code{background:var(--surface-2);padding:1px 6px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+  .gate-meta-row .meta-item b{color:var(--ink-2);font-weight:500}
+
+  /* Gate body */
+  .gate-body{padding:16px 18px}
+
+  /* Why this exists */
+  .why-block{
+    background:var(--surface-2);border-radius:10px;padding:12px 14px;
+    margin-bottom:14px;font-size:13px;line-height:1.55;
+    border-left:3px solid var(--ink-3);
+  }
+  .why-block .why-lbl{
+    font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-3);font-weight:600;margin-bottom:5px;
+    font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px;
+  }
+  .why-block .why-lbl svg{width:12px;height:12px}
+  .why-block code{background:var(--surface);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* DRY RUN PREVIEW */
+  .dry-run{
+    background:#0c0a09;color:#fafaf9;border-radius:10px;padding:0;
+    overflow:hidden;margin-bottom:14px;border:1px solid rgba(255,255,255,.05);
+  }
+  .dry-run-head{
+    padding:10px 14px;background:rgba(255,255,255,.05);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'Geist Mono',monospace;font-size:11px;
+    color:#a8a29e;letter-spacing:.05em;
+  }
+  .dry-run-head .lbl{display:flex;align-items:center;gap:6px;text-transform:uppercase;font-weight:600}
+  .dry-run-head .lbl svg{width:12px;height:12px}
+  .dry-run-head .ts{font-size:10px;opacity:.6}
+  .dry-run-body{padding:12px 14px;font-family:'Geist Mono',monospace;font-size:12px;line-height:1.75}
+  @media (max-width:640px){.dry-run-body{font-size:11px}}
+  .dr-row{display:flex;align-items:flex-start;gap:8px;padding:1px 0;white-space:pre-wrap}
+  .dr-row .dr-sym{width:14px;flex-shrink:0;font-weight:700}
+  .dr-row.add{color:#86efac} .dr-row.add .dr-sym::before{content:'+'}
+  .dr-row.del{color:#fca5a5} .dr-row.del .dr-sym::before{content:'−'}
+  .dr-row.run{color:#a8a29e} .dr-row.run .dr-sym::before{content:'$'}
+  .dr-row.note{color:#fbbf24} .dr-row.note .dr-sym::before{content:'!'}
+  .dr-row .dr-txt{flex:1;min-width:0}
+  .dr-row .dr-txt b{color:#fafaf9;font-weight:500}
+
+  /* Pre-check list (proof gate can be acted on) */
+  .precheck{
+    background:var(--surface-2);border-radius:10px;padding:12px 14px;
+    margin-bottom:14px;
+  }
+  .precheck-head{
+    font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-3);font-weight:600;margin-bottom:8px;
+    font-family:'Geist Mono',monospace;
+  }
+  .pc-row{
+    display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;
+  }
+  .pc-row .pc-icon{
+    width:18px;height:18px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pc-row.ok .pc-icon{background:var(--green);color:#fff}
+  .pc-row.ok .pc-icon svg{width:11px;height:11px;stroke-width:3.5}
+  .pc-row.warn .pc-icon{background:var(--yellow);color:#fff}
+  .pc-row.warn .pc-icon svg{width:11px;height:11px}
+  .pc-row.pending .pc-icon{background:var(--surface-3);border:1.5px solid var(--ink-4)}
+  .pc-row .pc-text{flex:1}
+  .pc-row .pc-text b{font-weight:500}
+  .pc-row .pc-meta{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* Approver row */
+  .approvers{
+    display:flex;align-items:center;justify-content:space-between;
+    flex-wrap:wrap;gap:12px;
+    padding:12px 14px;background:var(--surface-2);border-radius:10px;
+    margin-bottom:14px;
+  }
+  .approvers .ap-lbl{
+    font-size:10px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+  }
+  .approver-stack{display:flex;align-items:center;gap:-6px}
+  .ap-av{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;color:#fff;letter-spacing:-.02em;
+    border:2px solid var(--surface);margin-left:-6px;flex-shrink:0;
+    position:relative;
+  }
+  .ap-av:first-child{margin-left:0}
+  .ap-av.bot{background:var(--purple)}
+  .ap-av.bot::before{content:'AI';font-size:9px}
+  .ap-av.human{background:var(--green)}
+  .ap-av.pending{background:var(--surface-3);color:var(--ink-3);border-color:var(--surface)}
+  .ap-av.pending::after{
+    content:'';position:absolute;right:-2px;bottom:-2px;width:10px;height:10px;
+    border-radius:50%;background:var(--yellow);border:2px solid var(--surface);
+  }
+  .ap-stats{font-size:12px;color:var(--ink-2)}
+  .ap-stats b{font-weight:600;color:var(--ink)}
+
+  /* SLA pill */
+  .sla-pill{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;padding:3px 8px;border-radius:5px;
+    font-family:'Geist Mono',monospace;font-weight:500;
+    background:var(--surface-2);color:var(--ink-2);
+  }
+  .sla-pill svg{width:11px;height:11px}
+  .sla-pill.warn{background:var(--yellow-soft);color:var(--yellow)}
+  .sla-pill.danger{background:var(--red-soft);color:var(--red)}
+  .sla-pill.ok{background:var(--green-soft);color:var(--green)}
+
+  /* ACTIONS */
+  .gate-actions{
+    display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;
+    background:var(--surface-2);border-top:1px solid var(--line-2);
+  }
+  .gate-actions .btn{flex:1;min-width:0}
+  @media (min-width:640px){.gate-actions .btn{flex:none}}
+  .gate-actions .keyboard-hint{
+    margin-left:auto;font-size:11px;color:var(--ink-3);
+    font-family:'Geist Mono',monospace;align-self:center;
+    display:none;
+  }
+  @media (min-width:768px){.gate-actions .keyboard-hint{display:flex;gap:4px;align-items:center}}
+  .gate-actions .keyboard-hint kbd{
+    background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;
+    border-radius:4px;padding:1px 5px;font-size:10px;
+  }
+
+  /* Resolution row (for passed gates) */
+  .resolution{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;
+    background:var(--green-soft);border-radius:10px;font-size:12px;color:var(--ink-2);
+  }
+  .gate.urgent .resolution, .gate.open .resolution{background:var(--surface-2)}
+  .resolution svg{width:14px;height:14px;color:var(--green);flex-shrink:0}
+  .resolution b{font-weight:600;color:var(--ink)}
+
+  /* Future gate (preview, no actions) */
+  .gate.future .gate-body{opacity:.7}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-bottom))}
+  @media (min-width:1024px){.bottom-nav{display:none}}
+  .bnav-item{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:500;border-radius:8px;min-height:var(--tap);position:relative}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item .icon svg{width:22px;height:22px;stroke-width:1.5}
+  .bnav-item.active .icon svg{stroke-width:2}
+  .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top">
+  <button class="menu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+  <nav class="top-nav">
+    <button class="top-tab active">Remediation <span class="count urgent">3</span></button>
+    <button class="top-tab">Intake <span class="count">14</span></button>
+    <button class="top-tab">Sprint</button>
+    <button class="top-tab">AgentBook</button>
+  </nav>
+  <div class="top-right">
+    <div class="agent-pill"><span class="pulse-dot"></span><span class="label">Agent working</span></div>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn" onclick="toggleTheme()"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+</header>
+
+<!-- URL BAR -->
+<div class="url-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  <span><span class="url-prim">?page=</span>remediation<span class="url-prim">&issue=</span>issue-sec-1745<span class="url-prim">&tab=</span>gates</span>
+  <button class="url-share">Copy link</button>
+</div>
+
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="ids"><code>SEC-1745</code><span>·</span><code>FOR-5183</code><span>·</span><span>order-service</span></div>
+      <h1>SQL injection in OrderRepository.findByCustomer</h1>
+      <div class="header-meta">
+        <span class="sev sev-crit">Critical</span>
+        <span class="stage-tag">CWE-89</span>
+        <span class="stage-tag">spring-sql-injection@2.3</span>
+      </div>
+    </div>
+    <div class="page-actions">
+      <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Previous</button>
+      <button class="btn sm">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STAGE BAR -->
+  <div class="stage-bar">
+    <div class="stage-bar-head">
+      <div>
+        <div class="now-label">Current stage</div>
+        <div class="now-value">Awaiting human approval</div>
+      </div>
+      <div class="stage-progress">5 of 7 · 71%</div>
+    </div>
+    <div class="stage-track">
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill done"></button>
+      <button class="stage-pill now"></button>
+      <button class="stage-pill"></button>
+      <button class="stage-pill"></button>
+    </div>
+    <div class="stage-pill-labels">
+      <span class="done">Triaged</span><span class="done">Planned</span><span class="done">Coded</span><span class="done">Tested</span><span class="now">Approval</span><span>Merge</span><span>Verified</span>
+    </div>
+  </div>
+
+  <!-- CTX TABS -->
+  <div class="ctx-tabs" role="tablist">
+    <button class="ctx-tab">Overview</button>
+    <button class="ctx-tab">Evidence <span class="badge">12</span></button>
+    <button class="ctx-tab active">Human Gates <span class="badge alert">1</span></button>
+    <button class="ctx-tab">Regression</button>
+    <button class="ctx-tab">Verdict</button>
+  </div>
+
+  <!-- ============== HUMAN GATES CONTENT ============== -->
+
+  <!-- Intro -->
+  <div class="hg-intro">
+    <p class="lede">Checkpoints where the agent has prepared everything but needs your explicit decision. Each gate shows exactly what will happen on approve — no surprises.</p>
+    <div class="hg-subtabs">
+      <button class="hg-subtab active">Open <span class="ct">1</span></button>
+      <button class="hg-subtab">Passed <span class="ct">2</span></button>
+      <button class="hg-subtab">Future <span class="ct">2</span></button>
+      <button class="hg-subtab">All <span class="ct">5</span></button>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       OPEN GATE — needs action now
+       ========================================================= -->
+  <div class="hg-section-head">
+    Open <span class="line"></span>
+  </div>
+
+  <article class="gate urgent">
+    <div class="gate-strip"></div>
+
+    <div class="gate-head">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="gate-info">
+        <div class="gate-title">
+          <h3>Approve &amp; merge — critical severity</h3>
+          <span class="gate-state">Action required</span>
+        </div>
+        <p class="gate-sub">Critical-severity fixes require explicit human sign-off before merge. The agent has completed all preparation and is paused at this gate.</p>
+        <div class="gate-meta-row">
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> Required: <code>@alice</code></span>
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Opened <b>8m ago</b></span>
+          <span class="sla-pill ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> SLA: 6 days left</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gate-body">
+
+      <!-- Why this gate exists -->
+      <div class="why-block">
+        <div class="why-lbl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Why this gate exists
+        </div>
+        Severity is <b>Critical</b> and policy <code>autonomy.tier=T2</code> requires explicit human approval before merge. The change touches the data access layer, which is in the protected list for the <code>order-service</code> component owners.
+      </div>
+
+      <!-- Approvers -->
+      <div class="approvers">
+        <div class="ap-lbl">Approvers</div>
+        <div class="approver-stack">
+          <div class="ap-av bot" title="Developer Agent — done"></div>
+          <div class="ap-av bot" title="Reviewer Agent — approved"></div>
+          <div class="ap-av human" title="J. Reviewer — approved">JR</div>
+          <div class="ap-av pending" title="Alice Brown — pending">AB</div>
+        </div>
+        <div class="ap-stats"><b>3 of 4</b> approved · waiting on <b>you</b></div>
+      </div>
+
+      <!-- Pre-checks -->
+      <div class="precheck">
+        <div class="precheck-head">Pre-checks passed</div>
+        <div class="pc-row ok">
+          <div class="pc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pc-text"><b>All CI pipeline stages green</b> · build #4827</div>
+          <span class="pc-meta">7m 41s</span>
+        </div>
+        <div class="pc-row ok">
+          <div class="pc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pc-text"><b>Fortify rescan</b> confirms finding closed</div>
+          <span class="pc-meta">42m ago</span>
+        </div>
+        <div class="pc-row ok">
+          <div class="pc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pc-text"><b>2 reviewers approved</b> · Reviewer Agent + J. Reviewer</div>
+          <span class="pc-meta">11m ago</span>
+        </div>
+        <div class="pc-row ok">
+          <div class="pc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pc-text"><b>Only expected files touched</b> · 1 of 1 file in scope</div>
+          <span class="pc-meta">scope OK</span>
+        </div>
+        <div class="pc-row ok">
+          <div class="pc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pc-text"><b>No conflicts with main</b> · branch is rebased</div>
+          <span class="pc-meta">rebased 4m ago</span>
+        </div>
+      </div>
+
+      <!-- DRY RUN -->
+      <div class="dry-run">
+        <div class="dry-run-head">
+          <span class="lbl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Dry run — what will happen on approve
+          </span>
+          <span class="ts">simulated · no side effects</span>
+        </div>
+        <div class="dry-run-body">
+          <div class="dr-row run"><span class="dr-sym"></span><span class="dr-txt">check MR <b>!8442</b> still mergeable · approvers still valid</span></div>
+          <div class="dr-row run"><span class="dr-sym"></span><span class="dr-txt">verify Fortify rescan still clean (cache: 42m old, refresh)</span></div>
+          <div class="dr-row add"><span class="dr-sym"></span><span class="dr-txt">merge MR <b>!8442</b> → <b>main</b> (squash, signed commit)</span></div>
+          <div class="dr-row add"><span class="dr-sym"></span><span class="dr-txt">transition <b>SEC-1745</b> Jira: Approval → Merged</span></div>
+          <div class="dr-row add"><span class="dr-sym"></span><span class="dr-txt">post merge notice to <b>AgentBook</b> thread + Slack #sec-ops</span></div>
+          <div class="dr-row add"><span class="dr-sym"></span><span class="dr-txt">trigger <b>deploy pipeline</b> for order-service (auto, standard cadence)</span></div>
+          <div class="dr-row run"><span class="dr-sym"></span><span class="dr-txt">schedule confirmation rescan in 30m → close ticket if clean</span></div>
+          <div class="dr-row note"><span class="dr-sym"></span><span class="dr-txt">cannot be auto-reverted · rollback = <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px">git revert 9a7f3d2</code></span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="gate-actions">
+      <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Approve &amp; merge</button>
+      <button class="btn">Request changes</button>
+      <button class="btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Block</button>
+      <span class="keyboard-hint">press <kbd>A</kbd> approve · <kbd>R</kbd> request · <kbd>B</kbd> block</span>
+    </div>
+  </article>
+
+  <!-- =========================================================
+       PASSED GATES
+       ========================================================= -->
+  <div class="hg-section-head">
+    Passed <span class="line"></span>
+  </div>
+
+  <article class="gate passed">
+    <div class="gate-strip"></div>
+    <div class="gate-head">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="gate-info">
+        <div class="gate-title">
+          <h3>Playbook selection — confidence threshold</h3>
+          <span class="gate-state">Passed</span>
+        </div>
+        <p class="gate-sub">Triage agent's choice of remediation playbook had to clear a confidence threshold and avoid the "no-playbook" escalation path.</p>
+        <div class="gate-meta-row">
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11H1l8-8 8 8h-8v8z" transform="rotate(45 9 9)"/></svg> Auto-pass (confidence ≥ 80%)</span>
+          <span class="meta-item">Confidence: <b>98%</b></span>
+          <span class="meta-item">Passed <b>May 10 · 22:09</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="gate-body">
+      <div class="resolution">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div><b>spring-sql-injection@2.3</b> selected automatically · no human override needed</div>
+      </div>
+    </div>
+  </article>
+
+  <article class="gate passed">
+    <div class="gate-strip"></div>
+    <div class="gate-head">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="gate-info">
+        <div class="gate-title">
+          <h3>Sprint inclusion — planning ceremony</h3>
+          <span class="gate-state">Passed</span>
+        </div>
+        <p class="gate-sub">Issues triaged for the security backlog must be explicitly admitted to a sprint by the security lead during planning.</p>
+        <div class="gate-meta-row">
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> Approved by <code>@alice</code></span>
+          <span class="meta-item">Passed <b>May 11 · 09:23</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="gate-body">
+      <div class="resolution">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div>Added to <b>Sprint 7</b> during planning · <i>"Critical SQLi — standard playbook, low risk fix"</i></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- =========================================================
+       FUTURE GATES
+       ========================================================= -->
+  <div class="hg-section-head">
+    Future <span class="line"></span>
+  </div>
+
+  <article class="gate future">
+    <div class="gate-strip"></div>
+    <div class="gate-head">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="gate-info">
+        <div class="gate-title">
+          <h3>Production deploy</h3>
+          <span class="gate-state">Future</span>
+        </div>
+        <p class="gate-sub">After merge, the standard deploy pipeline will run. Production deploys for the order-service component require a release manager approval window.</p>
+        <div class="gate-meta-row">
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> Will be required: release manager</span>
+          <span class="meta-item">Estimated open: <b>after merge + 30m</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="gate-body">
+      <div class="why-block" style="border-left-color:var(--ink-4)">
+        <div class="why-lbl">Expected criteria when opened</div>
+        Standard production deploy criteria: post-deploy smoke tests, no SLO breach in past 30m, deploy window open (Mon–Thu 09:00–16:00).
+      </div>
+    </div>
+  </article>
+
+  <article class="gate future">
+    <div class="gate-strip"></div>
+    <div class="gate-head">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="gate-info">
+        <div class="gate-title">
+          <h3>Verification close-out</h3>
+          <span class="gate-state">Future</span>
+        </div>
+        <p class="gate-sub">30 minutes after deploy, the agent will re-scan and propose closing the issue. If anything is unexpected, a human must confirm closure.</p>
+        <div class="gate-meta-row">
+          <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg> Auto-close if rescan clean</span>
+          <span class="meta-item">Human required only if anomaly detected</span>
+        </div>
+      </div>
+    </div>
+    <div class="gate-body">
+      <div class="why-block" style="border-left-color:var(--ink-4)">
+        <div class="why-lbl">Auto-close conditions</div>
+        Finding still closed in Fortify · no new related findings · no production alerts in 30m post-deploy window · zero rollback signals.
+      </div>
+    </div>
+  </article>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>
+    <span>Remediation</span>
+    <span class="bnav-badge">3</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+    <span>Intake</span>
+    <span class="bnav-badge">14</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+    <span>Sprint</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span>AgentBook</span>
+  </button>
+  <button class="bnav-item">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+    <span>Tools</span>
+  </button>
+</nav>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  // Sub-tab toggling (visual only in this static page)
+  document.querySelectorAll('.hg-subtab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.hg-subtab').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  // Keyboard shortcuts for the open gate
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.key === 'a' || e.key === 'A') console.log('approve');
+    if (e.key === 'r' || e.key === 'R') console.log('request');
+    if (e.key === 'b' || e.key === 'B') console.log('block');
+  });
+</script>
+
+</body>
+</html>

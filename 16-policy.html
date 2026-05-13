@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Production policy · SecOps Workbench</title>
+<meta name="description" content="Production policy — 14 rules across autonomy / recovery / audit / release gates, 1 pending, 4-version history."/>
+<meta name="secops:screen-id" content="16"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Production policy · SecOps Workbench"/>
+<meta property="og:description" content="Production policy — 14 rules across autonomy / recovery / audit / release gates, 1 pending, 4-version history."/>
+<meta name="secops:policy" content="secops-policy@v3.2"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO — policy meta */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;align-items:flex-start;gap:14px}
+  .hero-orb{width:44px;height:44px;border-radius:12px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .hero-orb svg{width:20px;height:20px;stroke-width:2.5}
+  .hero-t{flex:1;min-width:0}
+  .hero-t .l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .hero-t .l .vp{background:var(--surface-2);padding:1px 6px;border-radius:4px;color:var(--ink-2);letter-spacing:.02em}
+  .hero-t h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .hero-t .s{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+  .hero-t .s b{color:var(--ink-2);font-weight:600}
+  .hero-t .s code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2)}
+
+  /* STATS */
+  .stats{margin:12px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .st{padding:11px 12px;background:var(--surface)}
+  .st .v{font-size:17px;font-weight:600;letter-spacing:-.02em;font-feature-settings:'tnum'}
+  .st .v.warn{color:var(--yellow)} .st .v.danger{color:var(--red)}
+  .st .l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-top:5px;font-family:'Geist Mono',monospace;font-weight:600}
+
+  /* FILTERS */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchip .ct{font-family:'Geist Mono',monospace;font-size:10px;opacity:.7}
+  .fchip.active .ct{opacity:.85}
+
+  /* SECTION */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec .ic{
+    width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--surface-2);color:var(--ink-2);flex-shrink:0;
+  }
+  .sec .ic svg{width:11px;height:11px}
+
+  /* RULE CARD */
+  .rule{margin:0 20px 8px;background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden;transition:border-color .15s}
+  .rule:hover{border-color:var(--ink-4)}
+  .rule.modified{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue-soft)}
+
+  .rh{padding:11px 13px;display:flex;align-items:flex-start;gap:10px}
+  .rh-l{flex:1;min-width:0}
+  .rh-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+  .rname{font-size:13px;font-weight:600;letter-spacing:-.005em;color:var(--ink)}
+  .rkey{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-2);background:var(--surface-2);padding:2px 6px;border-radius:4px}
+  .rtier{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace}
+  .rtier.t1{background:var(--green-soft);color:var(--green)}
+  .rtier.t2{background:var(--blue-soft);color:var(--blue)}
+  .rtier.t3{background:var(--yellow-soft);color:var(--yellow)}
+  .rtier.t4{background:var(--red-soft);color:var(--red)}
+  .rtier.new{background:var(--blue);color:#fff}
+
+  .rdesc{font-size:12px;color:var(--ink-2);line-height:1.5}
+  .rdesc code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--ink-2)}
+  .rdesc b{color:var(--ink);font-weight:600}
+
+  /* Toggle / state badge */
+  .rtoggle{
+    width:34px;height:20px;border-radius:11px;background:var(--green);position:relative;flex-shrink:0;
+    cursor:pointer;transition:background .15s;
+  }
+  .rtoggle::after{
+    content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+    transition:right .2s;
+  }
+  .rtoggle.off{background:var(--surface-3)}
+  .rtoggle.off::after{right:auto;left:2px}
+
+  /* Rule meta footer */
+  .rm{padding:8px 13px;background:var(--surface-2);border-top:1px solid var(--line-2);display:flex;align-items:center;gap:10px;font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;flex-wrap:wrap}
+  .rm .it{display:flex;align-items:center;gap:5px}
+  .rm .it svg{width:10px;height:10px;color:var(--ink-4)}
+  .rm .it b{color:var(--ink-2);font-weight:600}
+  .rm .edit{margin-left:auto;color:var(--ink-2);font-weight:600;padding:2px 7px;border-radius:4px}
+  .rm .edit:hover{background:var(--surface)}
+
+  /* Approval required pill (for sensitive rules) */
+  .req{
+    font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;
+    background:var(--yellow-soft);color:var(--yellow);
+    text-transform:uppercase;letter-spacing:.04em;font-family:'Geist Mono',monospace;
+  }
+
+  /* Version history sidebar -> inline list */
+  .hist{margin:0 20px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .hr{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .hr:last-child{border:none}
+  .hr .hv{font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);background:var(--surface-2);padding:2px 6px;border-radius:4px;flex-shrink:0}
+  .hr .ht{flex:1;color:var(--ink-2);line-height:1.45}
+  .hr .ht b{color:var(--ink);font-weight:600}
+  .hr .ht code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'Geist Mono',monospace}
+  .hr .htm{font-size:10px;color:var(--ink-4);font-family:'Geist Mono',monospace;flex-shrink:0}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .ft .mt b{color:var(--ink-2);font-weight:600}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+
+  /* Theme FAB */
+  .fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.fab{display:none}}
+  .fab:hover{background:var(--surface-2);color:var(--ink)}
+  .fab svg{width:14px;height:14px}
+  [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
+  [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<button class="fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Tools · Guardrails
+      </div>
+      <h2>Production policy</h2>
+      <div class="hsub">The rules every agent must follow in production · autonomy, recovery, audit, release gates</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-orb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="hero-t">
+        <div class="l">Active policy <span class="vp">secops-policy@v3.2</span></div>
+        <h3>14 rules · applies to all 5 agents</h3>
+        <div class="s">Last changed <b>2 weeks ago</b> by <b>@alice</b> · ratified at <b>Sprint 6 Retro</b>. All changes require approval from <b>@alice</b> or <b>@j.reviewer</b>; commits are GPG-signed and append-only.</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="st"><div class="v">14</div><div class="l">Rules</div></div>
+      <div class="st"><div class="v warn">1</div><div class="l">Pending</div></div>
+      <div class="st"><div class="v">9</div><div class="l">Approval req.</div></div>
+      <div class="st"><div class="v">2</div><div class="l">Deny rules</div></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <button class="fchip active">All <span class="ct">14</span></button>
+      <button class="fchip">Autonomy <span class="ct">4</span></button>
+      <button class="fchip">Recovery <span class="ct">3</span></button>
+      <button class="fchip">Audit <span class="ct">3</span></button>
+      <button class="fchip">Release gates <span class="ct">4</span></button>
+    </div>
+
+    <!-- ============ AUTONOMY ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Autonomy rules · 4
+      <span class="ln"></span>
+    </div>
+
+    <!-- T1 -->
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row">
+            <span class="rname">Auto-merge threshold</span>
+            <span class="rtier t1">T1</span>
+          </div>
+          <div class="rdesc"><code>severity ≤ medium</code> <b>AND</b> <code>playbook.uses ≥ 10</code> <b>AND</b> <code>playbook.success ≥ 95%</code>. Currently met by <b>spring-sql-injection</b> only.</div>
+        </div>
+        <div class="rtoggle" title="Enabled"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> changed <b>2w ago</b></span>
+        <span class="it">by <b>@alice</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- T2 -->
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row">
+            <span class="rname">Auto-approve threshold</span>
+            <span class="rtier t2">T2</span>
+          </div>
+          <div class="rdesc">Agent may post an approval vote on MRs but a human must merge. Default for all playbooks with <code>uses ≥ 3</code>.</div>
+        </div>
+        <div class="rtoggle" title="Enabled"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> changed <b>3w ago</b></span>
+        <span class="it">by <b>@j.reviewer</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- Critical override (pending change) -->
+    <article class="rule modified">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row">
+            <span class="rname">Critical-severity override</span>
+            <span class="rtier t4">T4</span>
+            <span class="rtier new">Pending</span>
+          </div>
+          <div class="rdesc"><b>Critical</b> findings always route to human approval, regardless of playbook tier. Proposed change: add <b>backup approver</b> (<code>@bob</code>) when primary is OOO &gt; 24h.</div>
+        </div>
+        <div class="rtoggle" title="Enabled"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from Sprint 6 Retro</span>
+        <span class="req">approval req</span>
+        <button class="edit">Review change</button>
+      </div>
+    </article>
+
+    <!-- Complexity escalation -->
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row">
+            <span class="rname">Complexity escalation</span>
+            <span class="rtier t3">T3</span>
+          </div>
+          <div class="rdesc">Auto-demote to engineering epic when: <code>files &gt; 3</code> <b>OR</b> <code>est. work &gt; 1d</code> <b>OR</b> <code>≥5 findings same vuln class</code>.</div>
+        </div>
+        <div class="rtoggle" title="Enabled"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> changed <b>2w ago</b></span>
+        <span class="it">by <b>@alice</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- ============ RECOVERY ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
+      Recovery &amp; rollback · 3
+      <span class="ln"></span>
+    </div>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Auto-rollback triggers</span></div>
+          <div class="rdesc">Revert merged fix within <b>15 min</b> if: <code>pipeline.fail</code> <b>OR</b> <code>error.rate &gt; 2× baseline (10min)</code> <b>OR</b> <code>p95.latency &gt; 1.5×</code>.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">scope: <b>all T1 merges</b></span>
+        <span class="req">approval req</span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Max retry attempts</span></div>
+          <div class="rdesc">Agent retries a failing fix up to <code>3 times</code>, then escalates to human queue. Backoff: 2m / 5m / 10m.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">last triggered <b>4d ago · SEC-1740</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Blast radius cap</span></div>
+          <div class="rdesc">A single agent run cannot modify more than <code>10 files</code> or open more than <code>3 MRs</code>. Exceeding either pauses the agent and pings <code>#sec-ops</code>.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">scope: <b>DEV agent</b></span>
+        <span class="req">approval req</span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- ============ AUDIT ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      Audit trail · 3
+      <span class="ln"></span>
+    </div>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">GPG-signed commits</span></div>
+          <div class="rdesc">Every agent commit is signed with a per-agent GPG key. Unsigned commits are rejected by branch protection.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> verified for <b>last 38 MRs</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Log retention</span></div>
+          <div class="rdesc">Agent traces and decisions retained in LangSmith for <code>90 days</code>, archived to S3 (immutable) for <code>2 years</code>.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">storage used: <b>4.2 GB</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Append-only policy changes</span></div>
+          <div class="rdesc">All edits to this policy are versioned in git; rollback only by reverting to a prior tagged version. No silent edits.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">repo: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;color:var(--ink-2)">secops/policy</code></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- ============ RELEASE GATES ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      Release gates · 4
+      <span class="ln"></span>
+    </div>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">No open critical findings</span></div>
+          <div class="rdesc">Block deploys to <code>prod</code> if any <b>Critical</b> finding is open and older than its <code>7-day SLA</code>.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> currently <b>passing</b></span>
+        <span class="req">approval req</span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">DAST suite pass</span></div>
+          <div class="rdesc">Nightly DAST run against staging must pass before promote-to-prod. Failed checks block until next green run.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">last run: <b>green · 2h ago</b></span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Two-approver merge to main</span></div>
+          <div class="rdesc">Agent vote counts as <b>one</b> approver. A human still required for the second approval, except on <b>T1 auto-merge</b> playbooks.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">scope: <code style="background:var(--surface);padding:1px 4px;border-radius:3px;color:var(--ink-2)">main, release/*</code></span>
+        <span class="req">approval req</span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <article class="rule">
+      <div class="rh">
+        <div class="rh-l">
+          <div class="rh-row"><span class="rname">Quarantined services</span></div>
+          <div class="rdesc">Agents may not modify <code>auth-service.*</code> or <code>db.migrations</code> without explicit per-MR override from <b>@alice</b>.</div>
+        </div>
+        <div class="rtoggle"></div>
+      </div>
+      <div class="rm">
+        <span class="it">2 paths quarantined</span>
+        <span class="req">approval req</span>
+        <button class="edit">Edit</button>
+      </div>
+    </article>
+
+    <!-- ============ VERSION HISTORY ============ -->
+    <div class="sec">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Version history
+      <span class="ln"></span>
+    </div>
+
+    <div class="hist">
+      <div class="hr">
+        <span class="hv">v3.2</span>
+        <span class="ht">Documented <b>T-tier escalation rules</b> with examples · added complexity caps · current <code>HEAD</code></span>
+        <span class="htm">2w ago<br>@alice</span>
+      </div>
+      <div class="hr">
+        <span class="hv">v3.1</span>
+        <span class="ht">Tightened <b>blast radius</b> from 15 files → 10 files after near-miss in <code>billing-service</code></span>
+        <span class="htm">5w ago<br>@j.reviewer</span>
+      </div>
+      <div class="hr">
+        <span class="hv">v3.0</span>
+        <span class="ht">Introduced 4-tier autonomy model (<b>T1–T4</b>) and per-playbook gating</span>
+        <span class="htm">3mo ago<br>@alice</span>
+      </div>
+      <div class="hr">
+        <span class="hv">v2.4</span>
+        <span class="ht">Added DAST gate, GPG-signed commit requirement</span>
+        <span class="htm">5mo ago<br>@bob</span>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      policy: <b>secops-policy@v3.2</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open in git
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+  document.querySelectorAll('.rtoggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('off')));
+</script>
+
+</body>
+</html>

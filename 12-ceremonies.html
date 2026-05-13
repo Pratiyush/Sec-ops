@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Ceremonies · SecOps Workbench</title>
+<meta name="description" content="Ceremonies — Sprint 7 Review & Retro Friday, 5 agenda items, past ceremonies with decisions and actions."/>
+<meta name="secops:screen-id" content="12"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Ceremonies · SecOps Workbench"/>
+<meta property="og:description" content="Ceremonies — Sprint 7 Review & Retro Friday, 5 agenda items, past ceremonies with decisions and actions."/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#ffffff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --tap:44px;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+    --radius:10px; --radius-lg:14px;
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:'cv11','ss01','ss03'}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px;-webkit-appearance:none}
+  code,.mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:'zero','ss01'}
+  *:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+  /* HOST PAGE */
+  .host-page{filter:blur(2px) brightness(.95);pointer-events:none;user-select:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .brand-mark{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .brand-text small{display:block;font-weight:400;font-size:11px;color:var(--ink-3);margin-top:1px;font-family:'Geist Mono',monospace}
+  .top-nav{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.top-nav{display:flex}}
+  .top-tab{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3);font-weight:500}
+  .top-tab.active{color:var(--ink);background:var(--surface-2);font-weight:600}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .agent-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:500}
+  .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .icon-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .icon-btn svg{width:18px;height:18px}
+  .mock-board{padding:24px;display:flex;flex-direction:column;gap:12px;max-width:1180px;margin:0 auto}
+  .mock-h{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mock-sub{height:14px;background:var(--surface-2);border-radius:4px;width:380px;opacity:.6;margin-top:4px}
+  .mock-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mock-cards{grid-template-columns:repeat(2,1fr)}}
+  .mock-col{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:200px}
+  .mock-line{height:8px;background:var(--surface-3);border-radius:3px;margin-bottom:6px}
+  .mock-line.w70{width:70%} .mock-line.w50{width:50%} .mock-line.w90{width:90%}
+
+  /* DRAWER */
+  .drawer-bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50;animation:fadeBg .2s ease}
+  @keyframes fadeBg{from{opacity:0}to{opacity:1}}
+
+  .util-drawer{
+    position:fixed;top:0;right:0;bottom:0;
+    width:min(480px,100%);max-width:100%;background:var(--bg);
+    border-left:1px solid var(--line);z-index:51;
+    display:flex;flex-direction:column;
+    padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);
+    box-shadow:-12px 0 32px rgba(12,10,9,.18);
+    animation:slideIn .28s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  .util-head{
+    padding:16px 20px;border-bottom:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;
+    background:var(--surface);
+  }
+  .util-head .crumb{
+    font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .util-head .crumb svg{width:11px;height:11px}
+  .util-head h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em;line-height:1.2}
+  .util-head .h-sub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.45}
+  .util-close{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+  .util-close:hover{background:var(--surface-2);color:var(--ink)}
+  .util-close svg{width:16px;height:16px}
+
+  .util-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .util-body::-webkit-scrollbar{width:6px}
+  .util-body::-webkit-scrollbar-track{background:transparent}
+  .util-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* ============ UPCOMING HERO ============ */
+  .upcoming-hero{
+    margin:16px 20px 0;padding:18px;
+    background:linear-gradient(135deg, var(--ink) 0%, #1c1917 100%);
+    color:var(--bg);border-radius:var(--radius-lg);position:relative;overflow:hidden;
+  }
+  [data-theme="dark"] .upcoming-hero{background:linear-gradient(135deg, #1c1917 0%, var(--surface-2) 100%)}
+  .upcoming-hero::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);
+  }
+  .upcoming-hero .uh-lbl{
+    font-size:9px;text-transform:uppercase;letter-spacing:.1em;
+    color:rgba(250,250,249,.55);font-weight:700;font-family:'Geist Mono',monospace;
+    margin-bottom:6px;display:flex;align-items:center;gap:6px;
+  }
+  .upcoming-hero .uh-lbl .dot{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:pulse 2s infinite}
+  .upcoming-hero h3{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:var(--bg)}
+  .upcoming-hero .uh-when{
+    font-size:13px;color:rgba(250,250,249,.75);margin-bottom:12px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .upcoming-hero .uh-when .dot-sep{width:3px;height:3px;border-radius:50%;background:rgba(250,250,249,.4)}
+  .upcoming-hero .uh-when b{color:var(--bg);font-weight:600}
+  .upcoming-hero .uh-stats{
+    display:flex;gap:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);flex-wrap:wrap;
+  }
+  .uh-stat{display:flex;flex-direction:column;gap:3px}
+  .uh-stat .v{font-size:15px;font-weight:600;font-family:'Geist Mono',monospace;color:var(--bg);font-feature-settings:'tnum'}
+  .uh-stat .l{font-size:9px;color:rgba(250,250,249,.5);text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;font-weight:600}
+  .upcoming-hero .uh-actions{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+  .uh-btn{
+    padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;
+    display:inline-flex;align-items:center;gap:5px;min-height:32px;
+  }
+  .uh-btn.primary{background:var(--bg);color:var(--ink)}
+  .uh-btn.primary:hover{opacity:.9}
+  .uh-btn.ghost{background:transparent;color:var(--bg);border:1px solid rgba(255,255,255,.15)}
+  .uh-btn.ghost:hover{background:rgba(255,255,255,.05)}
+  .uh-btn svg{width:12px;height:12px}
+
+  /* ============ TYPE TABS ============ */
+  .type-tabs{
+    margin:16px 20px 0;display:flex;gap:2px;
+    background:var(--surface-2);border:1px solid var(--line);
+    border-radius:9px;padding:3px;
+  }
+  .type-tab{
+    flex:1;padding:7px 8px;border-radius:6px;font-size:11px;font-weight:600;
+    color:var(--ink-3);text-align:center;
+  }
+  .type-tab:hover{color:var(--ink)}
+  .type-tab.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(12,10,9,.05)}
+
+  /* ============ SECTION HEAD ============ */
+  .sec-head{
+    margin:20px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+    display:flex;align-items:center;gap:8px;
+  }
+  .sec-head .line{flex:1;height:1px;background:var(--line);margin-left:4px}
+  .sec-head .add{
+    color:var(--ink-2);font-size:11px;font-weight:600;
+    display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;
+  }
+  .sec-head .add:hover{background:var(--surface-2);color:var(--ink)}
+  .sec-head .add svg{width:11px;height:11px}
+
+  /* ============ AGENDA ITEM CARD (current candidates) ============ */
+  .agenda-item{
+    margin:0 20px 8px;background:var(--surface);
+    border:1px solid var(--line);border-radius:11px;overflow:hidden;
+    transition:border-color .15s;
+  }
+  .agenda-item:hover{border-color:var(--ink-4)}
+  .ai-head{
+    padding:11px 13px;display:flex;align-items:flex-start;gap:10px;
+  }
+  .ai-tag{
+    font-size:9px;padding:3px 8px;border-radius:4px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;
+    font-family:'Geist Mono',monospace;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .ai-tag.review{background:var(--blue-soft);color:var(--blue)}
+  .ai-tag.retro{background:var(--purple-soft);color:var(--purple)}
+  .ai-tag.refine{background:var(--surface-3);color:var(--ink-2)}
+  .ai-tag.plan{background:var(--green-soft);color:var(--green)}
+  .ai-body{flex:1;min-width:0}
+  .ai-body .ai-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.4;letter-spacing:-.005em}
+  .ai-body .ai-title code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-family:'Geist Mono',monospace;font-weight:500}
+  .ai-body .ai-sub{font-size:11px;color:var(--ink-3);margin-top:4px;line-height:1.5;font-family:'Geist Mono',monospace}
+  .ai-actions{
+    padding:8px 13px;background:var(--surface-2);border-top:1px solid var(--line-2);
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  }
+  .ai-actions .av-stack{display:flex;align-items:center;gap:0;margin-right:auto}
+  .av-mini{
+    width:20px;height:20px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:8px;font-weight:700;color:#fff;letter-spacing:-.02em;
+    border:1.5px solid var(--surface);margin-left:-5px;flex-shrink:0;
+  }
+  .av-mini:first-child{margin-left:0}
+  .av-mini.alice{background:linear-gradient(135deg,#14b8a6,#0d9488)}
+  .av-mini.jr{background:linear-gradient(135deg,#ec4899,#be185d)}
+  .av-mini.bob{background:linear-gradient(135deg,#6366f1,#4338ca)}
+  .av-mini.bot{background:var(--purple)}
+  .av-mini.bot::before{content:'AI';font-size:7px}
+  .ai-mini-btn{
+    padding:4px 9px;border-radius:5px;font-size:10px;font-weight:600;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .ai-mini-btn:hover{background:var(--surface-3);color:var(--ink)}
+  .ai-mini-btn svg{width:10px;height:10px}
+
+  /* ============ PAST CEREMONY ROW ============ */
+  .past-ceremony{
+    margin:0 20px 8px;background:var(--surface);
+    border:1px solid var(--line);border-radius:11px;overflow:hidden;
+    opacity:.9;transition:opacity .15s;
+  }
+  .past-ceremony:hover,.past-ceremony.expanded{opacity:1}
+  .pc-head{
+    padding:12px 14px;display:flex;align-items:center;gap:12px;
+    cursor:pointer;
+  }
+  .pc-head:hover{background:var(--surface-2)}
+  .pc-type-mark{
+    width:32px;height:32px;border-radius:8px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pc-type-mark.plan{background:var(--green-soft);color:var(--green)}
+  .pc-type-mark.refine{background:var(--surface-3);color:var(--ink-2)}
+  .pc-type-mark.review{background:var(--blue-soft);color:var(--blue)}
+  .pc-type-mark.retro{background:var(--purple-soft);color:var(--purple)}
+  .pc-type-mark svg{width:15px;height:15px}
+  .pc-info{flex:1;min-width:0}
+  .pc-info .pc-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-.005em}
+  .pc-info .pc-meta{font-size:11px;color:var(--ink-3);margin-top:3px;font-family:'Geist Mono',monospace}
+  .pc-toggle{
+    width:24px;height:24px;border-radius:6px;color:var(--ink-3);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pc-toggle svg{width:13px;height:13px;transition:transform .15s}
+  .past-ceremony.expanded .pc-toggle svg{transform:rotate(180deg)}
+
+  /* Expanded outcomes */
+  .pc-expand{
+    max-height:0;overflow:hidden;transition:max-height .25s;
+  }
+  .past-ceremony.expanded .pc-expand{max-height:600px}
+  .pc-expand-inner{
+    padding:0 14px 14px;border-top:1px solid var(--line-2);
+  }
+  .pc-section{margin-top:12px}
+  .pc-section-lbl{
+    font-size:9px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;
+    margin-bottom:6px;
+  }
+  .pc-outcome{
+    display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px;line-height:1.5;
+    color:var(--ink-2);
+  }
+  .pc-outcome .ico{
+    width:14px;height:14px;flex-shrink:0;margin-top:2px;
+  }
+  .pc-outcome.decision .ico{color:var(--green)}
+  .pc-outcome.action .ico{color:var(--blue)}
+  .pc-outcome.note .ico{color:var(--ink-4)}
+  .pc-outcome .ico svg{width:14px;height:14px}
+  .pc-outcome .pc-txt b{color:var(--ink);font-weight:600}
+  .pc-outcome .pc-txt code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-family:'Geist Mono',monospace}
+  .pc-outcome .pc-owner{
+    font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;margin-left:auto;
+    flex-shrink:0;padding-top:2px;
+  }
+
+  /* ============ TEMPLATE ROW ============ */
+  .template-row{
+    margin:0 20px 8px;padding:11px 13px;
+    background:var(--surface);border:1px solid var(--line);border-radius:11px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .template-row:hover{border-color:var(--ink-4)}
+  .tpl-icon{
+    width:34px;height:34px;border-radius:8px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-2);color:var(--ink-2);
+  }
+  .tpl-icon svg{width:15px;height:15px}
+  .tpl-info{flex:1;min-width:0}
+  .tpl-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.005em}
+  .tpl-meta{font-size:11px;color:var(--ink-3);margin-top:2px;font-family:'Geist Mono',monospace}
+  .tpl-btn{
+    padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;
+    border:1px solid var(--line);color:var(--ink-2);background:var(--surface);
+    display:inline-flex;align-items:center;gap:4px;flex-shrink:0;
+  }
+  .tpl-btn:hover{background:var(--surface-2);color:var(--ink)}
+
+  /* ============ FOOTER ============ */
+  .util-foot{
+    padding:12px 20px calc(12px + var(--safe-bottom));
+    border-top:1px solid var(--line);background:var(--surface);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;flex-shrink:0;
+  }
+  .util-foot .meta{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .util-foot .meta svg{width:11px;height:11px}
+  .util-foot .actions{display:flex;gap:6px}
+  .btn{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.9}
+  .btn svg{width:12px;height:12px}
+
+  /* THEME TOGGLE */
+  .theme-fab{position:fixed;top:14px;right:500px;z-index:52;width:32px;height:32px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+  @media (max-width:580px){.theme-fab{display:none}}
+  .theme-fab:hover{background:var(--surface-2);color:var(--ink)}
+  .theme-fab svg{width:14px;height:14px}
+  [data-theme="light"] .icon-moon{display:block} [data-theme="light"] .icon-sun{display:none}
+  [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
+
+  .end-spacer{height:24px}
+</style>
+</head>
+<body>
+
+<!-- HOST PAGE -->
+<div class="host-page" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+    <nav class="top-nav">
+      <button class="top-tab">Remediation</button>
+      <button class="top-tab">Intake</button>
+      <button class="top-tab active">Sprint</button>
+      <button class="top-tab">AgentBook</button>
+    </nav>
+    <div class="top-right">
+      <div class="agent-pill"><span class="pulse-dot"></span></div>
+      <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </div>
+  </header>
+  <div class="mock-board">
+    <div class="mock-h"></div>
+    <div class="mock-sub"></div>
+    <div class="mock-cards">
+      <div class="mock-col"><div class="mock-line w70"></div><div class="mock-line w50"></div><div class="mock-line w90"></div></div>
+      <div class="mock-col"><div class="mock-line w70"></div><div class="mock-line w50"></div></div>
+      <div class="mock-col"><div class="mock-line w70"></div><div class="mock-line w90"></div></div>
+      <div class="mock-col"><div class="mock-line w50"></div><div class="mock-line w90"></div></div>
+      <div class="mock-col"><div class="mock-line w70"></div><div class="mock-line w50"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-bg" aria-hidden="true"></div>
+
+<button class="theme-fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
+
+<aside class="util-drawer" role="dialog" aria-labelledby="util-title">
+
+  <div class="util-head">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        Tools · Cadence
+      </div>
+      <h2 id="util-title">Ceremonies</h2>
+      <div class="h-sub">Planning, refinement, review, retro · agenda auto-collected as the sprint runs</div>
+    </div>
+    <button class="util-close" aria-label="Close drawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="util-body">
+
+    <!-- UPCOMING HERO -->
+    <div class="upcoming-hero">
+      <div class="uh-lbl"><span class="dot"></span> Next ceremony · in 3 days</div>
+      <h3>Sprint 7 Review &amp; Retro</h3>
+      <div class="uh-when">
+        <span>Friday, May 15</span><span class="dot-sep"></span><span><b>14:00 – 15:00 PT</b></span><span class="dot-sep"></span><span>Zoom · 4 attendees</span>
+      </div>
+      <div class="uh-stats">
+        <div class="uh-stat"><div class="v">5</div><div class="l">Agenda items</div></div>
+        <div class="uh-stat"><div class="v">2</div><div class="l">For review</div></div>
+        <div class="uh-stat"><div class="v">2</div><div class="l">For retro</div></div>
+        <div class="uh-stat"><div class="v">1</div><div class="l">For refine</div></div>
+      </div>
+      <div class="uh-actions">
+        <button class="uh-btn primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Open agenda
+        </button>
+        <button class="uh-btn ghost">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z"/></svg>
+          Join Zoom
+        </button>
+      </div>
+    </div>
+
+    <!-- TYPE TABS -->
+    <div class="type-tabs">
+      <button class="type-tab active">All · 4 ceremonies</button>
+      <button class="type-tab">Mine</button>
+      <button class="type-tab">Templates</button>
+    </div>
+
+    <!-- ============ CURRENT AGENDA ============ -->
+    <div class="sec-head">
+      <span>Friday agenda · 5 items collected</span>
+      <span class="line"></span>
+      <button class="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add item</button>
+    </div>
+
+    <article class="agenda-item">
+      <div class="ai-head">
+        <span class="ai-tag review">For review</span>
+        <div class="ai-body">
+          <div class="ai-title">Demo <code>SEC-1729</code> — agent fixed a critical SQL injection end-to-end with no human edits</div>
+          <div class="ai-sub">good story for stakeholders · shows T1 auto-merge tier working in practice</div>
+        </div>
+      </div>
+      <div class="ai-actions">
+        <div class="av-stack">
+          <span class="av-mini bot"></span>
+          <span class="av-mini alice">AB</span>
+        </div>
+        <button class="ai-mini-btn">Open</button>
+        <button class="ai-mini-btn">Remove</button>
+      </div>
+    </article>
+
+    <article class="agenda-item">
+      <div class="ai-head">
+        <span class="ai-tag retro">For retro</span>
+        <div class="ai-body">
+          <div class="ai-title">Promote <code>spring-csrf</code> playbook to <b>T1 auto-merge tier</b></div>
+          <div class="ai-sub">5 uses · 100% success · low risk pattern · ready for graduation</div>
+        </div>
+      </div>
+      <div class="ai-actions">
+        <div class="av-stack">
+          <span class="av-mini bot"></span>
+          <span class="av-mini alice">AB</span>
+          <span class="av-mini jr">JR</span>
+        </div>
+        <button class="ai-mini-btn">Open</button>
+        <button class="ai-mini-btn">Remove</button>
+      </div>
+    </article>
+
+    <article class="agenda-item">
+      <div class="ai-head">
+        <span class="ai-tag retro">For retro</span>
+        <div class="ai-body">
+          <div class="ai-title">Process gap: <code>SEC-1746</code> waited 4 days for approval</div>
+          <div class="ai-sub">need backup approver for critical crypto changes · risk: rolls into Sprint 8</div>
+        </div>
+      </div>
+      <div class="ai-actions">
+        <div class="av-stack">
+          <span class="av-mini alice">AB</span>
+          <span class="av-mini bob">B</span>
+        </div>
+        <button class="ai-mini-btn">Open</button>
+        <button class="ai-mini-btn">Remove</button>
+      </div>
+    </article>
+
+    <article class="agenda-item">
+      <div class="ai-head">
+        <span class="ai-tag refine">For refine</span>
+        <div class="ai-body">
+          <div class="ai-title">Draft <code>spring-jsp-xss</code> playbook</div>
+          <div class="ai-sub">3 findings blocked by its absence · @alice to draft by Wed · 2 hours estimated</div>
+        </div>
+      </div>
+      <div class="ai-actions">
+        <div class="av-stack">
+          <span class="av-mini alice">AB</span>
+        </div>
+        <button class="ai-mini-btn">Open</button>
+        <button class="ai-mini-btn">Remove</button>
+      </div>
+    </article>
+
+    <article class="agenda-item">
+      <div class="ai-head">
+        <span class="ai-tag review">For review</span>
+        <div class="ai-body">
+          <div class="ai-title">Sprint metrics — 32 velocity points · 6 of 12 done · 72% burn at day 8</div>
+          <div class="ai-sub">+1 ahead of plan · 142k of 500k weekly tokens used · 98% Reviewer Agent vote-match</div>
+        </div>
+      </div>
+      <div class="ai-actions">
+        <div class="av-stack">
+          <span class="av-mini bot"></span>
+          <span class="av-mini alice">AB</span>
+        </div>
+        <button class="ai-mini-btn">Open</button>
+        <button class="ai-mini-btn">Remove</button>
+      </div>
+    </article>
+
+    <!-- ============ PAST CEREMONIES ============ -->
+    <div class="sec-head">
+      <span>Past ceremonies · Sprint 7</span>
+      <span class="line"></span>
+    </div>
+
+    <article class="past-ceremony" id="pc-1">
+      <div class="pc-head" onclick="togglePast('pc-1')">
+        <div class="pc-type-mark plan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="pc-info">
+          <div class="pc-title">Sprint 7 Planning</div>
+          <div class="pc-meta">Mon May 4 · 10:00 · 4 attendees · 12 items admitted</div>
+        </div>
+        <span class="pc-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="pc-expand">
+        <div class="pc-expand-inner">
+
+          <div class="pc-section">
+            <div class="pc-section-lbl">Decisions</div>
+            <div class="pc-outcome decision">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="pc-txt">Admit 12 tickets to Sprint 7 · 40h estimated · within capacity</span>
+            </div>
+            <div class="pc-outcome decision">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="pc-txt"><b>SEC-1745</b> SQL injection promoted to top priority — critical severity, clean playbook</span>
+            </div>
+            <div class="pc-outcome decision">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="pc-txt">Defer JSP findings to Sprint 8 once <code>spring-jsp-xss</code> playbook exists</span>
+            </div>
+          </div>
+
+          <div class="pc-section">
+            <div class="pc-section-lbl">Action items</div>
+            <div class="pc-outcome action">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <span class="pc-txt">Draft <code>spring-jsp-xss</code> playbook</span>
+              <span class="pc-owner">@alice · by Wed</span>
+            </div>
+            <div class="pc-outcome action">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <span class="pc-txt">Set up nightly Fortify rescan after each merge</span>
+              <span class="pc-owner">@bob · done</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <article class="past-ceremony">
+      <div class="pc-head" onclick="togglePast(this.parentElement.id || 'pc-2', this.parentElement)">
+        <div class="pc-type-mark refine">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="pc-info">
+          <div class="pc-title">Mid-sprint refinement</div>
+          <div class="pc-meta">Wed May 7 · 11:00 · 3 attendees · 4 items refined</div>
+        </div>
+        <span class="pc-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </article>
+
+    <article class="past-ceremony">
+      <div class="pc-head">
+        <div class="pc-type-mark retro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="pc-info">
+          <div class="pc-title">Sprint 6 Retro</div>
+          <div class="pc-meta">Fri Apr 26 · 14:00 · 4 attendees · 6 action items</div>
+        </div>
+        <span class="pc-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="pc-expand">
+        <div class="pc-expand-inner">
+
+          <div class="pc-section">
+            <div class="pc-section-lbl">What went well</div>
+            <div class="pc-outcome decision">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="pc-txt">Agents shipped <b>11 of 14</b> tickets · best sprint to date</span>
+            </div>
+            <div class="pc-outcome decision">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="pc-txt">Async-first standup via AgentBook saved <b>~5h/week</b> across the team</span>
+            </div>
+          </div>
+
+          <div class="pc-section">
+            <div class="pc-section-lbl">Action items</div>
+            <div class="pc-outcome action">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <span class="pc-txt">Set up backup approver for critical crypto changes</span>
+              <span class="pc-owner">@alice · open</span>
+            </div>
+            <div class="pc-outcome action">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <span class="pc-txt">Document T-tier escalation rules in <code>secops-policy</code></span>
+              <span class="pc-owner">@alice · done</span>
+            </div>
+            <div class="pc-outcome action">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <span class="pc-txt">Scope JSP → Thymeleaf migration epic</span>
+              <span class="pc-owner">@bob · in progress</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <article class="past-ceremony">
+      <div class="pc-head">
+        <div class="pc-type-mark review">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="pc-info">
+          <div class="pc-title">Sprint 6 Review</div>
+          <div class="pc-meta">Fri Apr 26 · 13:00 · 6 attendees · 11 of 14 shipped</div>
+        </div>
+        <span class="pc-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </article>
+
+    <!-- ============ TEMPLATES ============ -->
+    <div class="sec-head">
+      <span>Templates · 4 ceremonies</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="template-row">
+      <div class="tpl-icon" style="background:var(--green-soft);color:var(--green)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="tpl-info">
+        <div class="tpl-name">Sprint Planning</div>
+        <div class="tpl-meta">Mondays · 60 min · capacity review + ticket admit</div>
+      </div>
+      <button class="tpl-btn">Open</button>
+    </div>
+
+    <div class="template-row">
+      <div class="tpl-icon" style="background:var(--surface-3);color:var(--ink-2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="tpl-info">
+        <div class="tpl-name">Backlog Refinement</div>
+        <div class="tpl-meta">Wednesdays · 30 min · effort estimates + playbook gaps</div>
+      </div>
+      <button class="tpl-btn">Open</button>
+    </div>
+
+    <div class="template-row">
+      <div class="tpl-icon" style="background:var(--blue-soft);color:var(--blue)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="tpl-info">
+        <div class="tpl-name">Sprint Review</div>
+        <div class="tpl-meta">Fridays · 30 min · demo shipped fixes to stakeholders</div>
+      </div>
+      <button class="tpl-btn">Open</button>
+    </div>
+
+    <div class="template-row" style="margin-bottom:0">
+      <div class="tpl-icon" style="background:var(--purple-soft);color:var(--purple)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="tpl-info">
+        <div class="tpl-name">Sprint Retro</div>
+        <div class="tpl-meta">Fridays · 30 min · process improvements + action items</div>
+      </div>
+      <button class="tpl-btn">Open</button>
+    </div>
+
+    <div class="end-spacer"></div>
+
+  </div>
+
+  <div class="util-foot">
+    <span class="meta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+      next: <b style="color:var(--ink-2)">Fri 14:00 PT</b>
+    </span>
+    <div class="actions">
+      <button class="btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Friday agenda
+      </button>
+      <button class="btn primary">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+  function togglePast(id, el){
+    const target = id ? document.getElementById(id) : el;
+    if (!target) return;
+    target.classList.toggle('expanded');
+  }
+  // Make all past-ceremony heads toggle
+  document.querySelectorAll('.past-ceremony').forEach(pc => {
+    const head = pc.querySelector('.pc-head');
+    if (head && !head.onclick) {
+      head.addEventListener('click', () => pc.classList.toggle('expanded'));
+    }
+  });
+  // Open first past ceremony by default for demo
+  const first = document.getElementById('pc-1');
+  if (first) first.classList.add('expanded');
+
+  // Type tabs
+  document.querySelectorAll('.type-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.type-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

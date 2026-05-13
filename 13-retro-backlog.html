@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Retro backlog · SecOps Workbench</title>
+<meta name="description" content="Retro improvement backlog — 9 action items, 4 shipped, 2 in progress; urgent: backup approver for crypto."/>
+<meta name="secops:screen-id" content="13"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Retro backlog · SecOps Workbench"/>
+<meta property="og:description" content="Retro improvement backlog — 9 action items, 4 shipped, 2 in progress; urgent: backup approver for crypto."/>
+<meta name="secops:policy" content="policy-proposals"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafaf9; --surface:#fff; --surface-2:#f5f5f4; --surface-3:#e7e5e4;
+    --ink:#0c0a09; --ink-2:#44403c; --ink-3:#78716c; --ink-4:#a8a29e;
+    --line:#e7e5e4; --line-2:#f0efed;
+    --red:#b91c1c; --red-soft:#fee2e2;
+    --orange:#c2410c; --orange-soft:#fed7aa;
+    --yellow:#a16207; --yellow-soft:#fef3c7;
+    --green:#15803d; --green-soft:#dcfce7;
+    --blue:#2563eb; --blue-soft:#dbeafe;
+    --purple:#6d28d9; --purple-soft:#ede9fe;
+    --teal:#0d9488; --teal-soft:#ccfbf1;
+    --safe-bottom:env(safe-area-inset-bottom,0);
+    --safe-top:env(safe-area-inset-top,0);
+  }
+  [data-theme="dark"]{
+    --bg:#0a0a0a; --surface:#141414; --surface-2:#1c1c1c; --surface-3:#262626;
+    --ink:#fafaf9; --ink-2:#d6d3d1; --ink-3:#a8a29e; --ink-4:#78716c;
+    --line:#292524; --line-2:#1c1917;
+    --red:#f87171; --red-soft:rgba(239,68,68,.18);
+    --orange:#fb923c; --orange-soft:rgba(234,88,12,.18);
+    --yellow:#facc15; --yellow-soft:rgba(202,138,4,.18);
+    --green:#4ade80; --green-soft:rgba(34,197,94,.18);
+    --blue:#60a5fa; --blue-soft:rgba(37,99,235,.18);
+    --purple:#a78bfa; --purple-soft:rgba(139,92,246,.18);
+    --teal:#5eead4; --teal-soft:rgba(20,184,166,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit;padding:0;font-size:15px}
+  code{font-family:'Geist Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+  /* HOST */
+  .host-bg{filter:blur(2px) brightness(.95);pointer-events:none;opacity:.55}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:max(10px,calc(var(--safe-top) + 4px));display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+  .bm{width:26px;height:26px;border-radius:7px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .tn{display:none;gap:2px;margin-left:20px}
+  @media (min-width:1024px){.tn{display:flex}}
+  .tt{padding:8px 14px;border-radius:8px;font-size:13px;color:var(--ink-3)}
+  .tt.active{background:var(--surface-2);color:var(--ink);font-weight:600}
+  .mock{padding:24px;max-width:1180px;margin:0 auto}
+  .mh{height:28px;background:var(--surface-2);border-radius:6px;width:240px}
+  .mc{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+  @media (max-width:1024px){.mc{grid-template-columns:repeat(2,1fr)}}
+  .mcol{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;height:160px}
+
+  /* DRAWER */
+  .bg{position:fixed;inset:0;background:rgba(12,10,9,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:50}
+  .dr{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);border-left:1px solid var(--line);z-index:51;display:flex;flex-direction:column;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);box-shadow:-12px 0 32px rgba(12,10,9,.18);animation:slideIn .28s cubic-bezier(.32,.72,0,1)}
+
+  .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface);flex-shrink:0}
+  .crumb{font-size:10px;color:var(--ink-3);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .crumb svg{width:11px;height:11px}
+  .dh h2{margin:0;font-size:18px;font-weight:600;letter-spacing:-.015em}
+  .hsub{font-size:12px;color:var(--ink-3);margin-top:4px}
+  .x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .x:hover{background:var(--surface-2);color:var(--ink)}
+  .x svg{width:16px;height:16px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* HERO — progress overview */
+  .hero{margin:16px 20px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .hero-l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;margin-bottom:5px}
+  .hero h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+  .hero .lede{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+  .hero .lede b{color:var(--ink-2);font-weight:600}
+
+  /* Progress bar — segmented */
+  .progress{height:8px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:flex;gap:2px}
+  .progress .seg{height:100%}
+  .progress .seg.done{background:var(--green)}
+  .progress .seg.prog{background:var(--blue)}
+  .progress .seg.todo{background:var(--ink-4);opacity:.25}
+  .progress-legend{display:flex;gap:12px;margin-top:9px;font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;font-weight:500}
+  .progress-legend .pl{display:flex;align-items:center;gap:5px}
+  .progress-legend .pl::before{content:'';width:8px;height:8px;border-radius:50%}
+  .progress-legend .pl.done::before{background:var(--green)}
+  .progress-legend .pl.prog::before{background:var(--blue)}
+  .progress-legend .pl.todo::before{background:var(--ink-4);opacity:.5}
+
+  /* FILTER BAR */
+  .filters{margin:14px 20px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .fchip{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:inline-flex;align-items:center;gap:5px}
+  .fchip:hover{color:var(--ink);border-color:var(--ink-4)}
+  .fchip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fchip .ct{font-family:'Geist Mono',monospace;font-size:10px;opacity:.7}
+  .fchip.active .ct{opacity:.85}
+
+  /* SECTION HEAD */
+  .sec{margin:22px 20px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600;font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:8px}
+  .sec .ln{flex:1;height:1px;background:var(--line);margin-left:4px}
+
+  /* ACTION ITEM */
+  .item{margin:0 20px 10px;background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden;transition:border-color .15s}
+  .item:hover{border-color:var(--ink-4)}
+  .item.done{opacity:.85}
+  .item.urgent{border-color:var(--red);box-shadow:0 0 0 1px var(--red-soft)}
+
+  .ih{padding:13px 14px}
+  .ih-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+
+  /* Status pill */
+  .pstatus{font-size:9px;padding:3px 8px;border-radius:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace;display:inline-flex;align-items:center;gap:5px}
+  .pstatus::before{content:'';width:6px;height:6px;border-radius:50%}
+  .pstatus.todo{background:var(--surface-2);color:var(--ink-3)}
+  .pstatus.todo::before{background:var(--ink-4)}
+  .pstatus.prog{background:var(--blue-soft);color:var(--blue)}
+  .pstatus.prog::before{background:var(--blue);animation:pulse 2.5s infinite}
+  .pstatus.done{background:var(--green-soft);color:var(--green)}
+  .pstatus.done::before{background:var(--green)}
+  .pstatus.urgent{background:var(--red-soft);color:var(--red)}
+  .pstatus.urgent::before{background:var(--red);animation:pulse 1.5s infinite}
+
+  /* Theme pill */
+  .ptheme{font-size:9px;padding:3px 8px;border-radius:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:'Geist Mono',monospace}
+  .ptheme.process{background:var(--purple-soft);color:var(--purple)}
+  .ptheme.tooling{background:var(--orange-soft);color:var(--orange)}
+  .ptheme.playbook{background:var(--teal-soft);color:var(--teal)}
+  .ptheme.culture{background:var(--blue-soft);color:var(--blue)}
+
+  .ih .ttl{font-size:13.5px;font-weight:600;color:var(--ink);letter-spacing:-.005em;line-height:1.4;margin-bottom:5px}
+  .ih .ttl code{background:var(--surface-2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--ink-2);font-weight:500}
+  .ih .desc{font-size:12px;color:var(--ink-3);line-height:1.55}
+  .ih .desc b{color:var(--ink-2);font-weight:600}
+
+  /* Sub-row: source ceremony, due date, etc. */
+  .meta{padding:9px 14px;background:var(--surface-2);border-top:1px solid var(--line-2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace}
+  .meta .m-item{display:flex;align-items:center;gap:5px}
+  .meta .m-item svg{width:11px;height:11px;color:var(--ink-4)}
+  .meta .m-item b{color:var(--ink-2);font-weight:600}
+  .meta .m-item.danger b{color:var(--red)}
+  .meta .m-item.warn b{color:var(--yellow)}
+
+  /* Owner avatar */
+  .av{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;letter-spacing:-.02em;flex-shrink:0}
+  .av.alice{background:linear-gradient(135deg,#14b8a6,#0d9488)}
+  .av.jr{background:linear-gradient(135deg,#ec4899,#be185d)}
+  .av.bob{background:linear-gradient(135deg,#6366f1,#4338ca)}
+  .av.bot{background:var(--purple)}
+  .av.bot::before{content:'AI';font-size:7px}
+
+  /* Impact/Effort dots */
+  .ie{display:inline-flex;gap:2px;align-items:center;margin-left:auto}
+  .ie .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-4);opacity:.3}
+  .ie .dot.on{opacity:1;background:var(--ink-2)}
+  .ie .ie-lbl{font-size:9px;color:var(--ink-4);font-family:'Geist Mono',monospace;font-weight:600;margin-right:3px;text-transform:uppercase;letter-spacing:.04em}
+
+  /* Actions row */
+  .acts{padding:8px 14px;background:var(--surface);border-top:1px solid var(--line-2);display:flex;gap:6px;flex-wrap:wrap}
+  .ab{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;gap:5px;min-height:28px}
+  .ab:hover{background:var(--surface-2);color:var(--ink)}
+  .ab.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .ab svg{width:11px;height:11px}
+
+  /* Add new improvement */
+  .add{margin:16px 20px 24px;padding:16px;border:1.5px dashed var(--line);border-radius:12px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-3);width:calc(100% - 40px);background:transparent}
+  .add:hover{border-color:var(--ink-3);color:var(--ink-2);background:var(--surface-2)}
+  .add .pc{width:30px;height:30px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex-shrink:0}
+  .add .pc svg{width:14px;height:14px}
+  .add .ttx{flex:1;text-align:left}
+  .add .ttx b{font-weight:600;color:var(--ink-2);display:block}
+  .add .ttx small{font-size:11px;color:var(--ink-4);font-family:'Geist Mono',monospace}
+
+  /* FOOTER */
+  .ft{padding:12px 20px calc(12px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+  .ft .mt{font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:flex;align-items:center;gap:6px}
+  .ft .mt svg{width:11px;height:11px}
+  .fb{padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;gap:5px;min-height:32px}
+  .fb.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .fb svg{width:12px;height:12px}
+</style>
+</head>
+<body>
+
+<div class="host-bg" aria-hidden="true">
+  <header class="top">
+    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
+  </header>
+  <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
+</div>
+
+<div class="bg"></div>
+
+<aside class="dr" role="dialog">
+
+  <div class="dh">
+    <div>
+      <div class="crumb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Tools · Cadence
+      </div>
+      <h2>Retro improvement backlog</h2>
+      <div class="hsub">Action items from past retros · what we said we'd improve, and where each one stands</div>
+    </div>
+    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO — progress overview -->
+    <div class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="hero-l">Across last 4 retros</div>
+          <h3>9 improvement actions tracked</h3>
+          <div class="lede"><b>4 shipped</b> · 2 in progress · 3 not started. Two are urgent (overdue or rolling into Sprint 8).</div>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="seg done" style="flex:4"></div>
+        <div class="seg prog" style="flex:2"></div>
+        <div class="seg todo" style="flex:3"></div>
+      </div>
+      <div class="progress-legend">
+        <span class="pl done">4 done</span>
+        <span class="pl prog">2 in progress</span>
+        <span class="pl todo">3 not started</span>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <button class="fchip active">All <span class="ct">9</span></button>
+      <button class="fchip">Process <span class="ct">3</span></button>
+      <button class="fchip">Tooling <span class="ct">2</span></button>
+      <button class="fchip">Playbook <span class="ct">3</span></button>
+      <button class="fchip">Culture <span class="ct">1</span></button>
+    </div>
+
+    <!-- ============ URGENT / IN PROGRESS ============ -->
+    <div class="sec">Open · 5 actions<span class="ln"></span></div>
+
+    <!-- 1. URGENT - backup approver -->
+    <article class="item urgent">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus urgent">Urgent</span>
+          <span class="ptheme process">Process</span>
+          <span class="ie">
+            <span class="ie-lbl">impact</span>
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+        </div>
+        <div class="ttl">Set up backup approver for critical crypto changes</div>
+        <div class="desc"><b>SEC-1746</b> waited <b>4 days</b> for approval because Alice was the only approver and was OOO. Risk: ticket rolls into Sprint 8. Bob nominated as backup; needs to be added to <code>approver-pool@crypto</code> in the policy.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 6 Retro</b></span>
+        <span class="m-item"><span class="av alice">AB</span> <b>@alice</b></span>
+        <span class="m-item danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> due <b>today</b></span>
+      </div>
+      <div class="acts">
+        <button class="ab p">Mark in progress</button>
+        <button class="ab">View source retro</button>
+        <button class="ab">Reassign</button>
+      </div>
+    </article>
+
+    <!-- 2. IN PROGRESS - jsp-xss playbook -->
+    <article class="item">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus prog">In progress</span>
+          <span class="ptheme playbook">Playbook</span>
+          <span class="ie">
+            <span class="ie-lbl">impact</span>
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span>
+          </span>
+        </div>
+        <div class="ttl">Draft <code>spring-jsp-xss</code> playbook</div>
+        <div class="desc"><b>3 findings</b> currently blocked because no playbook exists for JSP-based XSS patterns. Alice has the first draft at <b>40% complete</b> — covers <code>&lt;c:out&gt;</code> escape strategy and <code>fn:escapeXml</code> wrapping.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 7 Planning</b></span>
+        <span class="m-item"><span class="av alice">AB</span> <b>@alice</b></span>
+        <span class="m-item warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/></svg> due <b>Wed May 14</b></span>
+      </div>
+      <div class="acts">
+        <button class="ab p">Open draft</button>
+        <button class="ab">Comment</button>
+      </div>
+    </article>
+
+    <!-- 3. IN PROGRESS - jsp migration epic -->
+    <article class="item">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus prog">In progress</span>
+          <span class="ptheme tooling">Tooling</span>
+          <span class="ie">
+            <span class="ie-lbl">impact</span>
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span>
+          </span>
+        </div>
+        <div class="ttl">JSP → Thymeleaf migration epic</div>
+        <div class="desc">Strategic fix to eliminate the JSP XSS class entirely. Engineering owns it. Currently scoping — 14 JSP files in <code>order-service</code>, 9 in <code>billing</code>. Estimated <b>2 sprints</b>.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 6 Retro</b></span>
+        <span class="m-item"><span class="av bob">B</span> <b>@bob</b> (eng)</span>
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/></svg> due <b>end Sprint 9</b></span>
+      </div>
+      <div class="acts">
+        <button class="ab p">Open epic</button>
+        <button class="ab">View scope</button>
+      </div>
+    </article>
+
+    <!-- 4. NOT STARTED - promote csrf to T1 -->
+    <article class="item">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus todo">Not started</span>
+          <span class="ptheme playbook">Playbook</span>
+          <span class="ie">
+            <span class="ie-lbl">impact</span>
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+        </div>
+        <div class="ttl">Promote <code>spring-csrf@1.2</code> to <b>T1 auto-merge</b></div>
+        <div class="desc">Playbook has <b>5 successful uses</b> · 100% success rate · zero rollbacks. Policy requires ≥10 uses for T1, but team agreed to lower the bar for low-risk patterns. Proposed at Friday's retro.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 7 Retro</b> (proposed)</span>
+        <span class="m-item"><span class="av jr">JR</span> <b>@j.reviewer</b></span>
+      </div>
+      <div class="acts">
+        <button class="ab p">Start</button>
+        <button class="ab">Reassign</button>
+      </div>
+    </article>
+
+    <!-- 5. NOT STARTED - culture -->
+    <article class="item">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus todo">Not started</span>
+          <span class="ptheme culture">Culture</span>
+          <span class="ie">
+            <span class="ie-lbl">impact</span>
+            <span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+        </div>
+        <div class="ttl">Publish weekly digest of agent fixes to <code>#eng-general</code></div>
+        <div class="desc">Engineering teams don't see the work the agents do quietly. Bob suggested a Friday digest: shipped fixes, prevented incidents, headline number. Builds trust + visibility.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 5 Retro</b></span>
+        <span class="m-item"><span class="av bob">B</span> <b>@bob</b></span>
+      </div>
+      <div class="acts">
+        <button class="ab p">Start</button>
+        <button class="ab">Reassign</button>
+      </div>
+    </article>
+
+    <!-- ============ DONE ============ -->
+    <div class="sec">Shipped · 4 actions<span class="ln"></span></div>
+
+    <article class="item done">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus done">Done</span>
+          <span class="ptheme tooling">Tooling</span>
+        </div>
+        <div class="ttl">Set up nightly Fortify rescan after each merge</div>
+        <div class="desc">Closes the loop between auto-merge and verification. Pipeline now triggers a project rescan within 15 min of any agent-merged MR. Catches regressions early.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 7 Planning</b></span>
+        <span class="m-item"><span class="av bob">B</span> <b>@bob</b></span>
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--green)"><polyline points="20 6 9 17 4 12"/></svg> shipped <b>3 days ago</b></span>
+      </div>
+    </article>
+
+    <article class="item done">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus done">Done</span>
+          <span class="ptheme process">Process</span>
+        </div>
+        <div class="ttl">Document T-tier escalation rules in AgentBook</div>
+        <div class="desc">When a fix is too complex for auto-merge, the criteria for routing to engineering vs. demoting to T3 wasn't clear. Now codified in <code>secops-policy@v3.2</code> with examples.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 6 Retro</b></span>
+        <span class="m-item"><span class="av alice">AB</span> <b>@alice</b></span>
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--green)"><polyline points="20 6 9 17 4 12"/></svg> shipped <b>2 weeks ago</b></span>
+      </div>
+    </article>
+
+    <article class="item done">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus done">Done</span>
+          <span class="ptheme playbook">Playbook</span>
+        </div>
+        <div class="ttl">Add SHA-1 → SHA-256 playbook</div>
+        <div class="desc">Filled a critical gap. Already used <b>3 times</b> with 100% success — including <code>SEC-1738</code> last week.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 5 Retro</b></span>
+        <span class="m-item"><span class="av jr">JR</span> <b>@j.reviewer</b></span>
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--green)"><polyline points="20 6 9 17 4 12"/></svg> shipped <b>3 weeks ago</b></span>
+      </div>
+    </article>
+
+    <article class="item done">
+      <div class="ih">
+        <div class="ih-top">
+          <span class="pstatus done">Done</span>
+          <span class="ptheme process">Process</span>
+        </div>
+        <div class="ttl">Move standup to async-first via AgentBook</div>
+        <div class="desc">Previous daily 9am standup was being skipped. Orchestrator now posts the daily roll-up to AgentBook by 8:30; humans react with reads/blocks. Saved ~5h/week across the team.</div>
+      </div>
+      <div class="meta">
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> from <b>Sprint 5 Retro</b></span>
+        <span class="m-item"><span class="av alice">AB</span> <b>@alice</b></span>
+        <span class="m-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--green)"><polyline points="20 6 9 17 4 12"/></svg> shipped <b>4 weeks ago</b></span>
+      </div>
+    </article>
+
+    <!-- ADD ROW -->
+    <button class="add">
+      <div class="pc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="ttx">
+        <b>Capture an improvement</b>
+        <small>Add ad-hoc, or wait for Friday retro to surface it</small>
+      </div>
+    </button>
+
+  </div>
+
+  <div class="ft">
+    <span class="mt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      review at next retro: <b style="color:var(--ink-2)">Fri May 15</b>
+    </span>
+    <div style="display:flex;gap:6px">
+      <button class="fb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="fb p">Done</button>
+    </div>
+  </div>
+
+</aside>
+
+<script>
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+  document.querySelectorAll('.fchip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+
+</body>
+</html>
