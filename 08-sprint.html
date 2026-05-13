@@ -440,6 +440,9 @@
   .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
   /* nav-as-anchors shim (added by fix_nav) */
   .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
+  /* link-shim (added by fix_more_links) */
+  a.lnk,a.bcard-link,a.row-link{text-decoration:none;color:inherit}
+  a.bcard-link{display:block}
 </style>
 </head>
 <body>
@@ -596,7 +599,7 @@
         <div class="name-row"><span class="dot"></span><span>Queued</span></div>
         <span class="ct">3</span>
       </div>
-      <article class="bcard bot">
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1748</code></span>
         </div>
@@ -606,8 +609,8 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~3h</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot gitlab"></span><code>SEC-1751</code></span>
         </div>
@@ -617,8 +620,8 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~1h</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot sonatype"></span><code>SEC-1752</code></span>
         </div>
@@ -628,7 +631,7 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~2h</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
+      </article></a>
       <button class="add-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         add ticket
@@ -641,7 +644,7 @@
         <div class="name-row"><span class="dot"></span><span>In progress</span></div>
         <span class="ct">1</span>
       </div>
-      <article class="bcard bot active-card">
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot active-card">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1747</code></span>
           <span class="working-pill">Working</span>
@@ -656,7 +659,7 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 18m elapsed</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
+      </article></a>
       <button class="add-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         add ticket
@@ -669,7 +672,7 @@
         <div class="name-row"><span class="dot"></span><span>In review</span></div>
         <span class="ct alert">2</span>
       </div>
-      <article class="bcard bot">
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1745</code></span>
         </div>
@@ -687,8 +690,8 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> 3 of 4 approved</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1743</code></span>
         </div>
@@ -703,7 +706,7 @@
           <span class="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg> 2 of 3 approved</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
+      </article></a>
       <button class="add-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         add ticket
@@ -716,7 +719,7 @@
         <div class="name-row"><span class="dot"></span><span>Blocked</span></div>
         <span class="ct alert">2</span>
       </div>
-      <article class="bcard bot blocked">
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot blocked">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1740</code></span>
         </div>
@@ -732,8 +735,8 @@
           <span class="meta">→ engineering epic</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard human blocked">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard human blocked">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1746</code></span>
         </div>
@@ -754,7 +757,7 @@
           <span class="meta">@alice approval pending</span>
           <div class="av-sm human">A</div>
         </div>
-      </article>
+      </article></a>
       <button class="add-card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:11px;height:11px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         add ticket
@@ -767,7 +770,7 @@
         <div class="name-row"><span class="dot"></span><span>Done</span></div>
         <span class="ct">6</span>
       </div>
-      <article class="bcard bot">
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1742</code></span>
         </div>
@@ -777,8 +780,8 @@
           <span class="meta">merged · today 11:03</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1738</code></span>
         </div>
@@ -788,8 +791,8 @@
           <span class="meta">merged · today 10:15</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot gitlab"></span><code>SEC-1734</code></span>
         </div>
@@ -799,8 +802,8 @@
           <span class="meta">merged · today 09:42</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1735</code></span>
         </div>
@@ -810,8 +813,8 @@
           <span class="meta">merged · yesterday</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard bot">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard bot">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1729</code></span>
         </div>
@@ -821,8 +824,8 @@
           <span class="meta">merged · 2 days ago</span>
           <div class="av-sm bot"></div>
         </div>
-      </article>
-      <article class="bcard human">
+      </article></a>
+      <a class="bcard-link" href="01-remediation.html"><article class="bcard human">
         <div class="bcard-head">
           <span class="k"><span class="src-dot fortify"></span><code>SEC-1741</code></span>
         </div>
@@ -832,7 +835,7 @@
           <span class="meta">merged · 2 days ago</span>
           <div class="av-sm human">A</div>
         </div>
-      </article>
+      </article></a>
     </div>
 
   </div>

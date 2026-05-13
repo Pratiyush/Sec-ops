@@ -150,6 +150,9 @@
   /* Floating ⌘K hint when no demo backdrop visible — hide */
   /* nav-as-anchors shim (added by fix_nav) */
   .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
+  /* link-shim (added by fix_more_links) */
+  a.lnk,a.bcard-link,a.row-link{text-decoration:none;color:inherit}
+  a.bcard-link{display:block}
 </style>
 </head>
 <body>
@@ -200,7 +203,7 @@
       <div class="grp">
         <div class="gh">Tickets <span class="ct">3</span></div>
 
-        <div class="row sel">
+        <a class="row-link" href="01-remediation.html"><div class="row sel">
           <div class="ic tk">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
@@ -212,9 +215,9 @@
             <span class="badge crit">Critical</span>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic tk h">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
@@ -226,9 +229,9 @@
             <span class="badge" style="background:var(--orange-soft);color:var(--orange)">High</span>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic tk m">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
@@ -240,14 +243,14 @@
             <span class="badge med">Medium</span>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
       </div>
 
       <!-- PLAYBOOKS -->
       <div class="grp">
         <div class="gh">Playbooks <span class="ct">1</span></div>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic pb">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           </div>
@@ -259,14 +262,14 @@
             <span class="badge" style="background:var(--green-soft);color:var(--green)">T1</span>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
       </div>
 
       <!-- CEREMONIES -->
       <div class="grp">
         <div class="gh">Ceremonies <span class="ct">1</span></div>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic set">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
           </div>
@@ -275,37 +278,37 @@
             <div class="sb">Fri May 15 · 14:00 PT · Zoom · 4 attendees</div>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
       </div>
 
       <!-- PEOPLE -->
       <div class="grp">
         <div class="gh">People <span class="ct">2</span></div>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic av-jr"></div>
           <div class="info">
             <div class="ti">J. Reviewer · approved SEC-<mark>1745</mark></div>
             <div class="sb">on-call security eng · approved at 10:31</div>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic av-alice"></div>
           <div class="info">
             <div class="ti">Alice Brown · pending on SEC-<mark>1745</mark></div>
             <div class="sb">security lead · final approver · <b>your turn</b></div>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
       </div>
 
       <!-- COMMANDS -->
       <div class="grp">
         <div class="gh">Commands <span class="ct">2</span></div>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic cmd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
@@ -319,9 +322,9 @@
             </span>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
 
-        <div class="row">
+        <a class="row-link" href="01-remediation.html"><div class="row">
           <div class="ic cmd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
           </div>
@@ -330,7 +333,7 @@
             <div class="sb">opens Pilot &amp; Replay drawer · read-only</div>
           </div>
           <span class="ent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </div>
+        </div></a>
       </div>
 
     </div>

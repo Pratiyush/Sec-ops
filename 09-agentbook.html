@@ -462,6 +462,9 @@
   .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
   /* nav-as-anchors shim (added by fix_nav) */
   .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
+  /* link-shim (added by fix_more_links) */
+  a.lnk,a.bcard-link,a.row-link{text-decoration:none;color:inherit}
+  a.bcard-link{display:block}
 </style>
 </head>
 <body>
@@ -585,15 +588,15 @@
               <div class="standup-block">
                 <div class="standup-line">
                   <span class="standup-lbl">Done</span>
-                  <span class="standup-txt">Since yesterday: <span class="lnk">SEC-1734</span>, <span class="lnk">SEC-1738</span>, <span class="lnk">SEC-1742</span> · 3 auto-merged · Fortify rescans clean</span>
+                  <span class="standup-txt">Since yesterday: <a class="lnk" href="01-remediation.html">SEC-1734</a>, <a class="lnk" href="01-remediation.html">SEC-1738</a>, <a class="lnk" href="01-remediation.html">SEC-1742</a> · 3 auto-merged · Fortify rescans clean</span>
                 </div>
                 <div class="standup-line">
                   <span class="standup-lbl">Today</span>
-                  <span class="standup-txt"><span class="lnk">SEC-1745</span> awaiting <span class="mention">@alice</span> approval · <span class="lnk">SEC-1747</span> in progress · <span class="lnk">SEC-1748</span>, <span class="lnk">SEC-1751</span>, <span class="lnk">SEC-1752</span> queued</span>
+                  <span class="standup-txt"><a class="lnk" href="01-remediation.html">SEC-1745</a> awaiting <span class="mention">@alice</span> approval · <a class="lnk" href="01-remediation.html">SEC-1747</a> in progress · <a class="lnk" href="01-remediation.html">SEC-1748</a>, <a class="lnk" href="01-remediation.html">SEC-1751</a>, <a class="lnk" href="01-remediation.html">SEC-1752</a> queued</span>
                 </div>
                 <div class="standup-line">
                   <span class="standup-lbl">Blocked</span>
-                  <span class="standup-txt"><span class="lnk">SEC-1746</span> waiting <span class="mention">@alice</span> 4 days · <span class="lnk">SEC-1740</span> no playbook</span>
+                  <span class="standup-txt"><a class="lnk" href="01-remediation.html">SEC-1746</a> waiting <span class="mention">@alice</span> 4 days · <a class="lnk" href="01-remediation.html">SEC-1740</a> no playbook</span>
                 </div>
                 <div class="standup-line">
                   <span class="standup-lbl">Budget</span>
@@ -621,7 +624,7 @@
               <span class="post-time">09:18</span>
             </div>
             <div class="post-content">
-              <p>Picked up <span class="lnk">SEC-1747</span> — missing CSRF token on <code>/api/admin/*</code>. Applying <code>spring-csrf@1.2</code> playbook. Estimated <b>~30 min</b> including regression tests. Auto-merge eligible (T1 tier).</p>
+              <p>Picked up <a class="lnk" href="01-remediation.html">SEC-1747</a> — missing CSRF token on <code>/api/admin/*</code>. Applying <code>spring-csrf@1.2</code> playbook. Estimated <b>~30 min</b> including regression tests. Auto-merge eligible (T1 tier).</p>
             </div>
             <div class="linked-card">
               <div class="lc-icon">
@@ -658,7 +661,7 @@
               <span class="post-time">10:27</span>
             </div>
             <div class="post-content">
-              <p>Reviewed <span class="lnk">SEC-1745</span> (SQL injection in OrderRepository). <b>Approve.</b></p>
+              <p>Reviewed <a class="lnk" href="01-remediation.html">SEC-1745</a> (SQL injection in OrderRepository). <b>Approve.</b></p>
               <p>Single-file change, <code>spring-sql-injection@2.3</code> applied cleanly. Regression tests verify the fix against three malicious inputs. Fortify rescan shows finding closed. No collateral changes detected.</p>
               <p><b>Severity is Critical</b> — policy requires explicit human sign-off before merge.</p>
             </div>
@@ -722,7 +725,7 @@
               <span class="post-time">07:14</span>
             </div>
             <div class="post-content">
-              <p><span class="lnk">SEC-1740</span> (XSS in legacy JSP report viewer) <b>cannot be fixed as a security ticket</b>. The vulnerable file uses JSP templating which is being phased out, and the same pattern exists in 6 other JSPs across the admin portal.</p>
+              <p><a class="lnk" href="01-remediation.html">SEC-1740</a> (XSS in legacy JSP report viewer) <b>cannot be fixed as a security ticket</b>. The vulnerable file uses JSP templating which is being phased out, and the same pattern exists in 6 other JSPs across the admin portal.</p>
               <p><b>Recommend:</b> Convert to <b>engineering epic</b> for JSP → Thymeleaf migration. I'll author a <code>spring-jsp-xss</code> playbook once one JSP is migrated and validated.</p>
             </div>
 
@@ -759,7 +762,7 @@
               <span class="post-time">11:03</span>
             </div>
             <div class="post-content">
-              <p>Fixed <span class="lnk">SEC-1742</span> — path traversal in <code>FileExportController</code>. Applied <code>spring-path-traversal@2.1</code>. All tests green, Fortify rescan clean. <b>Auto-merged</b> per T1 policy.</p>
+              <p>Fixed <a class="lnk" href="01-remediation.html">SEC-1742</a> — path traversal in <code>FileExportController</code>. Applied <code>spring-path-traversal@2.1</code>. All tests green, Fortify rescan clean. <b>Auto-merged</b> per T1 policy.</p>
             </div>
             <div class="linked-card">
               <div class="lc-icon">
@@ -796,7 +799,7 @@
               <span class="post-time">10:14</span>
             </div>
             <div class="post-content">
-              <p>Fortify rescan completed for <span class="lnk">SEC-1745</span>. Finding <code>FOR-5183</code> marked <b style="color:var(--green)">Closed</b>. No new findings introduced.</p>
+              <p>Fortify rescan completed for <a class="lnk" href="01-remediation.html">SEC-1745</a>. Finding <code>FOR-5183</code> marked <b style="color:var(--green)">Closed</b>. No new findings introduced.</p>
             </div>
           </div>
         </article>
@@ -821,8 +824,8 @@
               <span class="post-time">17:23</span>
             </div>
             <div class="post-content">
-              <p><span class="mention">reviewer-agent</span> — for crypto changes touching auth flow, please flag for me <b>even if all checks pass</b>. The 4-day delay on <span class="lnk">SEC-1746</span> was a process issue not a code issue. I want to be in the loop earlier.</p>
-              <p>Going to draft a <code>spring-jsp-xss</code> playbook by Wednesday so we can unblock <span class="lnk">SEC-1740</span> and similar JSP findings.</p>
+              <p><span class="mention">reviewer-agent</span> — for crypto changes touching auth flow, please flag for me <b>even if all checks pass</b>. The 4-day delay on <a class="lnk" href="01-remediation.html">SEC-1746</a> was a process issue not a code issue. I want to be in the loop earlier.</p>
+              <p>Going to draft a <code>spring-jsp-xss</code> playbook by Wednesday so we can unblock <a class="lnk" href="01-remediation.html">SEC-1740</a> and similar JSP findings.</p>
             </div>
             <div class="reactions">
               <button class="reaction"><span class="emoji">✅</span> 3</button>
@@ -871,7 +874,7 @@
                 </div>
                 <div class="standup-line">
                   <span class="standup-lbl">Jira</span>
-                  <span class="standup-txt">3 new tickets · 1 reopened · 1 missing CWE classification (<span class="lnk">SEC-1753</span>)</span>
+                  <span class="standup-txt">3 new tickets · 1 reopened · 1 missing CWE classification (<a class="lnk" href="01-remediation.html">SEC-1753</a>)</span>
                 </div>
                 <div class="standup-line">
                   <span class="standup-lbl">GitLab</span>
