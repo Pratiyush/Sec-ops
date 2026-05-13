@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+- GitHub Pages deployment via `.github/workflows/pages.yml`. Site auto-publishes
+  on every push to `main`. Empty `.nojekyll` so Pages serves files verbatim.
+
 ### Changed
 - **Navigation wired across the prototype.** Top-nav tabs, remediation
   context tabs, mobile bottom-nav and brand mark are now real `<a>` links

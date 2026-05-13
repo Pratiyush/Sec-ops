@@ -18,6 +18,12 @@ python3 -m http.server 8000
 
 Or simply double-click `index.html` — every link is relative.
 
+The prototype is also published via **GitHub Pages** on every push to `main`:
+<https://pratiyush.github.io/Sec-ops/>
+
+> First-time setup: in repo Settings → Pages, set **Source** to "GitHub Actions".
+> The workflow at `.github/workflows/pages.yml` handles the rest.
+
 ## Screens
 
 The landing page (`index.html`) groups all 21 screens into four clusters.
