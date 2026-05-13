@@ -13,6 +13,11 @@
   search overlay's Esc key call `history.back()`. Every screen is reachable
   from every other screen.
 
+### Notes
+- The `github-pages` environment branch policy must allow `main` to deploy
+  (repo Settings → Environments → `github-pages` → Deployment branches and
+  tags → allow `main` or set to "No restriction"). One-time setup.
+
 ### Added
 - Initial 21-screen SecOps Workbench prototype (static HTML, hand-tuned).
 - Landing page `index.html` cross-linking all screens by cluster
