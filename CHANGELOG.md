@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+- **Navigation wired across the prototype.** Top-nav tabs, remediation
+  context tabs, mobile bottom-nav and brand mark are now real `<a>` links
+  that navigate between screens. Overlay close buttons (`19`, `21`) and the
+  search overlay's Esc key call `history.back()`. Every screen is reachable
+  from every other screen.
+
 ### Added
 - Initial 21-screen SecOps Workbench prototype (static HTML, hand-tuned).
 - Landing page `index.html` cross-linking all screens by cluster

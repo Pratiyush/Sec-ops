@@ -148,6 +148,8 @@
   .ft .scope-info b{color:var(--ink-2);font-weight:600}
 
   /* Floating ⌘K hint when no demo backdrop visible — hide */
+  /* nav-as-anchors shim (added by fix_nav) */
+  .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
@@ -155,7 +157,7 @@
 <!-- HOST — sprint board behind -->
 <div class="host-bg" aria-hidden="true">
   <header class="top">
-    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <a class="brand-link" href="index.html" style="text-decoration:none;color:inherit"><div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div></a>
     <nav class="tn">
       <button class="tt">Remediation</button>
       <button class="tt">Intake</button>
@@ -352,6 +354,9 @@
   const stored = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+
+  // Esc dismisses the search overlay
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') history.back(); });
 
   // Keyboard nav for the demo
   const rows = Array.from(document.querySelectorAll('.row'));
