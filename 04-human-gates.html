@@ -376,6 +376,9 @@
   .bnav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;font-family:'Geist Mono',monospace;min-width:16px;text-align:center;line-height:1.4}
   /* nav-as-anchors shim (added by fix_nav) */
   .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
+  /* link-shim (added by fix_more_links) */
+  a.lnk,a.bcard-link,a.row-link{text-decoration:none;color:inherit}
+  a.bcard-link{display:block}
 </style>
 </head>
 <body>
@@ -419,8 +422,8 @@
       </div>
     </div>
     <div class="page-actions">
-      <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Previous</button>
-      <button class="btn sm">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <a class="btn sm" href="03-evidence.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Previous</a>
+      <a class="btn sm" href="05-regression.html">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></a>
     </div>
   </div>
 
