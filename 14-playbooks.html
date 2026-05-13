@@ -209,13 +209,15 @@
   .fab svg{width:14px;height:14px}
   [data-theme="light"] .moon{display:block} [data-theme="light"] .sun{display:none}
   [data-theme="dark"] .moon{display:none} [data-theme="dark"] .sun{display:block}
+  /* nav-as-anchors shim (added by fix_nav) */
+  .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
 
 <div class="host-bg" aria-hidden="true">
   <header class="top">
-    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <a class="brand-link" href="index.html" style="text-decoration:none;color:inherit"><div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div></a>
     <nav class="tn"><button class="tt">Remediation</button><button class="tt">Intake</button><button class="tt active">Sprint</button><button class="tt">AgentBook</button></nav>
   </header>
   <div class="mock"><div class="mh"></div><div class="mc"><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div><div class="mcol"></div></div></div>
@@ -239,7 +241,7 @@
       <h2>Playbooks &amp; Skills</h2>
       <div class="hsub">Git-versioned <code style="background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:11px">SKILL.md</code> files · the patterns the Developer Agent uses to fix vulnerabilities</div>
     </div>
-    <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button class="x" aria-label="Close" onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
 
   <div class="body">

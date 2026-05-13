@@ -200,6 +200,8 @@
   .b-pri svg{width:13px;height:13px}
   .kbd-hint{margin-left:auto;display:inline-flex;gap:3px;font-size:10px;color:rgba(255,255,255,.7);font-family:'Geist Mono',monospace;font-weight:500}
   .kbd-hint kbd{padding:1px 5px;background:rgba(255,255,255,.12);border-radius:3px;color:#fff;font-size:9.5px}
+  /* nav-as-anchors shim (added by fix_nav) */
+  .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
@@ -207,7 +209,7 @@
 <!-- HOST PAGE - blurred Verdict tab -->
 <div class="host-bg" aria-hidden="true">
   <header class="top">
-    <div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div>
+    <a class="brand-link" href="index.html" style="text-decoration:none;color:inherit"><div class="brand"><div class="bm">SO</div><div>SecOps Workbench</div></div></a>
     <nav class="tn">
       <button class="tt active">Remediation</button>
       <button class="tt">Intake</button>
@@ -248,7 +250,7 @@
         <h2 id="md-title">You're the final approver</h2>
         <div class="ttl-sub" id="md-desc">3 of 4 approvers have signed off · merging will deploy to <b>prod</b> within 15 min</div>
       </div>
-      <button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="x" aria-label="Close" onclick="history.back()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
 
     <div class="body">

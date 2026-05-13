@@ -336,6 +336,8 @@
   [data-theme="dark"] .icon-moon{display:none} [data-theme="dark"] .icon-sun{display:block}
 
   .end-spacer{height:24px}
+  /* nav-as-anchors shim (added by fix_nav) */
+  .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
@@ -343,12 +345,12 @@
 <!-- HOST PAGE -->
 <div class="host-page" aria-hidden="true">
   <header class="top">
-    <div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+    <a class="brand-link" href="index.html" style="display:flex;align-items:center;gap:10px"><div class="brand"><div class="brand-mark">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div></a>
     <nav class="top-nav">
-      <button class="top-tab">Remediation</button>
-      <button class="top-tab">Intake</button>
-      <button class="top-tab active">Sprint</button>
-      <button class="top-tab">AgentBook</button>
+      <a class="top-tab" href="01-remediation.html">Remediation</a>
+      <a class="top-tab" href="07-intake.html">Intake</a>
+      <a class="top-tab active" href="08-sprint.html">Sprint</a>
+      <a class="top-tab" href="09-agentbook.html">AgentBook</a>
     </nav>
     <div class="top-right">
       <div class="agent-pill"><span class="pulse-dot"></span></div>

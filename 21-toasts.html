@@ -167,18 +167,20 @@
   .hint{position:fixed;top:60px;right:max(16px,var(--safe-right));z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--ink-3);font-family:'Geist Mono',monospace;display:none;align-items:center;gap:6px}
   @media (min-width:768px){.hint{display:inline-flex}}
   .hint kbd{padding:1px 5px;background:var(--surface-2);border-radius:3px;font-size:10px;font-weight:600;color:var(--ink-2);font-family:'Geist Mono',monospace;border:1px solid var(--line)}
+  /* nav-as-anchors shim (added by fix_nav) */
+  .top-nav a.top-tab,.ctx-tabs a.ctx-tab,.bottom-nav a.bnav-item,a.brand-link{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
 
 <!-- HOST page (NOT blurred — toasts coexist with normal UI) -->
 <header class="top">
-  <div class="brand"><div class="bm">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div>
+  <a class="brand-link" href="index.html" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px"><div class="brand"><div class="bm">SO</div><div class="brand-text"><span>SecOps Workbench</span><small>Sprint 7 · Day 8/10</small></div></div></a>
   <nav class="tn">
-    <button class="tt">Remediation</button>
-    <button class="tt">Intake</button>
-    <button class="tt active">Sprint</button>
-    <button class="tt">AgentBook</button>
+    <a class="tt" href="01-remediation.html" style="text-decoration:none;color:inherit">Remediation</a>
+    <a class="tt" href="07-intake.html" style="text-decoration:none;color:inherit">Intake</a>
+    <a class="tt active" href="08-sprint.html" style="text-decoration:none;color:inherit">Sprint</a>
+    <a class="tt" href="09-agentbook.html" style="text-decoration:none;color:inherit">AgentBook</a>
   </nav>
   <div class="topright">
     <div class="agp"><span class="pd"></span><span style="display:none">Agent working</span></div>
@@ -262,7 +264,7 @@
         <div class="t-desc">Error rate spiked <b>2.4×</b> baseline after merge · reverted <code>commit b1f0c7e</code> within <b>11 min</b>. Pipeline rule from <code>secops-policy@v3.2</code>.</div>
         <div class="t-meta"><span class="it">just now</span></div>
       </div>
-      <button class="t-x" aria-label="Dismiss">
+      <button class="t-x" aria-label="Dismiss" onclick="this.closest('.toast').style.display='none'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -284,7 +286,7 @@
         <div class="t-desc">Developer Agent used <b>87k of 100k</b> · projected to exceed by Friday. Triage and Reviewer well within budget.</div>
         <div class="t-meta"><span class="it">5m ago</span></div>
       </div>
-      <button class="t-x" aria-label="Dismiss">
+      <button class="t-x" aria-label="Dismiss" onclick="this.closest('.toast').style.display='none'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -306,7 +308,7 @@
         <div class="t-desc">Backup-approver rule is now live · <b>@bob</b> added to <code>approver-pool@crypto</code>. Closes urgent action from Sprint 6 Retro.</div>
         <div class="t-meta"><span class="it">2m ago · by @alice</span></div>
       </div>
-      <button class="t-x" aria-label="Dismiss">
+      <button class="t-x" aria-label="Dismiss" onclick="this.closest('.toast').style.display='none'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -330,7 +332,7 @@
           <span class="it">just now</span>
         </div>
       </div>
-      <button class="t-x" aria-label="Dismiss">
+      <button class="t-x" aria-label="Dismiss" onclick="this.closest('.toast').style.display='none'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
